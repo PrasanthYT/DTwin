@@ -6,10 +6,40 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sign In:", { email, password });
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid credentials. Please try again.");
+      }
+
+      alert("Login successful!");
+      // Save token or user info in localStorage/sessionStorage if needed
+      // localStorage.setItem("token", data.token);
+
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignIn = () => {
@@ -24,15 +54,14 @@ export default function SignIn() {
         <h2 className="text-white text-2xl font-semibold mt-3">Sign In</h2>
       </div>
 
-      {/* Card Container (Removed shadow from here) */}
+      {/* Card Container */}
       <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative mt-36">
-        {/* Form Section */}
         <div className="px-6 py-8">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
             <div>
-              <label className="block text-gray-700 text-sm font-medium">
-                Email Address
-              </label>
+              <label className="block text-gray-700 text-sm font-medium">Email Address</label>
               <div className="relative mt-1">
                 <FaEnvelope className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -47,9 +76,7 @@ export default function SignIn() {
             </div>
 
             <div>
-              <label className="block text-gray-700 text-sm font-medium">
-                Password
-              </label>
+              <label className="block text-gray-700 text-sm font-medium">Password</label>
               <div className="relative mt-1">
                 <FaLock className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -71,16 +98,17 @@ export default function SignIn() {
             </div>
 
             <div className="text-right">
-              <a href="#" className="text-sm text-gray-500 hover:underline">
-                Forgot Password?
-              </a>
+              <a href="#" className="text-sm text-gray-500 hover:underline">Forgot Password?</a>
             </div>
 
             <button
               type="submit"
-              className="w-full mt-2 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition flex items-center justify-center"
+              className={`w-full mt-2 py-3 bg-blue-600 text-white font-medium rounded-lg transition flex items-center justify-center ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+              }`}
+              disabled={loading}
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -92,20 +120,14 @@ export default function SignIn() {
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center py-3 border rounded-lg hover:bg-gray-100 transition"
           >
-            <img
-              src="/googlelogo.png"
-              alt="Google"
-              className="w-6 h-6 mr-2"
-            />
+            <img src="/googlelogo.png" alt="Google" className="w-6 h-6 mr-2" />
             Sign in with Google
           </button>
 
           <div className="mt-4 text-center">
             <p className="text-sm">
               Don’t have an account?{" "}
-              <a href="#" className="text-red-500 font-medium hover:underline">
-                Sign Up
-              </a>
+              <a href="#" className="text-red-500 font-medium hover:underline">Sign Up</a>
             </p>
           </div>
         </div>

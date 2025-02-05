@@ -8,10 +8,44 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sign Up:", { email, password, confirmPassword });
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong!");
+      }
+
+      alert("Registration successful! You can now log in.");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,6 +60,8 @@ export default function SignUp() {
       <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative mt-36">
         <div className="px-6 py-8">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
             <div>
               <label className="block text-gray-700 text-sm font-medium">Email Address</label>
               <div className="relative mt-1">
@@ -64,7 +100,7 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label className="block text-gray-700 text-sm font-medium">Password Confirmation</label>
+              <label className="block text-gray-700 text-sm font-medium">Confirm Password</label>
               <div className="relative mt-1">
                 <FaLock className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -87,9 +123,13 @@ export default function SignUp() {
 
             <button
               type="submit"
-              className="w-full mt-2 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition flex items-center justify-center"
+              className={`w-full mt-2 py-3 bg-blue-600 text-white font-medium rounded-lg transition flex items-center justify-center ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+              }`}
+              disabled={loading}
             >
-              Sign Up <Plus className="ml-2 h-5 w-5" />
+              {loading ? "Signing Up..." : "Sign Up"}
+              <Plus className="ml-2 h-5 w-5" />
             </button>
           </form>
 
