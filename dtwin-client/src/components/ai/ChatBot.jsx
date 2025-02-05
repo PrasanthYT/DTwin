@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Play, Pause } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Importing useNavigate
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -12,8 +13,14 @@ const Chatbot = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [playingAudio, setPlayingAudio] = useState(null);
   const chatContainerRef = useRef(null);
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  const toggleChat = () => setIsExpanded(!isExpanded);
+  const toggleChat = () => {
+    if (isExpanded) {
+      navigate('/dashboard'); // Navigate to dashboard when chat is collapsed
+    }
+    setIsExpanded(!isExpanded);
+  };
 
   const detectEmotion = (message) => {
     if (/sad|depressed|down|lonely|anxious/i.test(message)) return "sad";
@@ -153,7 +160,7 @@ const Chatbot = () => {
           <div className="bg-blue-500 p-4 border-b flex items-center justify-between">
             <h2 className="text-xl font-medium text-blue-100 ">Dr. Lyla • AI Therapist</h2>
             <button onClick={toggleChat} className="text-gray-500 hover:text-gray-700">
-              <ChevronDown  color={"white"}size={24} />
+              <ChevronDown color={"white"} size={24} />
             </button>
           </div>
 
@@ -163,7 +170,7 @@ const Chatbot = () => {
                 {msg.role === "bot" && msg.audioFile && (
                   <button 
                     onClick={() => handlePlayAudio(msg.audioFile)}
-                    className="absolute -top-5 left-2 mt-1 mr-1  text-gray-500 hover:text-gray-700"
+                    className="absolute -top-5 left-2 mt-1 mr-1 text-gray-500 hover:text-gray-700"
                   >
                     {playingAudio === msg.audioFile ? <Pause size={16} /> : <Play size={16} />}
                   </button>
@@ -173,13 +180,13 @@ const Chatbot = () => {
                 </div>
               </div>
             ))}
-           {isTyping && (
-                <div className="flex items-center space-x-1 p-2">
+            {isTyping && (
+              <div className="flex items-center space-x-1 p-2">
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></span>
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></span>
               </div>
-              )}
+            )}
           </div>
 
           <div className="flex p-4 border-t bg-white">
@@ -197,10 +204,6 @@ const Chatbot = () => {
           </div>
         </motion.div>
       ) : (
-        // <motion.div className="fixed bottom-0 left-0 right-0 bg-blue-500 p-3 shadow-lg flex items-center justify-between z-50">
-        //   <h2 className="text-blue-100 font-medium">Dr. Lyla</h2>
-        //   <button onClick={toggleChat}><ChevronUp color="white" size={24} /></button>
-        // </motion.div>
         <></>
       )}
     </AnimatePresence>
