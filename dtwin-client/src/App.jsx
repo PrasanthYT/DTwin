@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/ui/Home";
 import SignIn from "./components/ui/SignIn";
 import SignUp from "./components/ui/SignUp";
-import { path } from 'path';
+import SearchCompo from "./components/SearchCompo/SearchCompo";
+// import { path } from 'path';
 
 const App = () => {
   return (
@@ -12,7 +13,7 @@ const App = () => {
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/search" element={<SearchBox />}></Route>
+      <Route path="/search" element={<SearchCompo />}></Route>
       </Routes>
     </Router>
   );

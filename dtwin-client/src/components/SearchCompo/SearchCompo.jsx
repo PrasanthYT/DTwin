@@ -6,7 +6,7 @@ const SearchBox = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const API_KEY = "91ed0a11f18147dab60ff46998078";
+  const API_KEY = "91ed0a11f18147dab60ff46998078997";
   const API_URL = "https://api.promptrepo.com/api/private/fuck-sheet4";
 
   const handleSearch = async () => {
