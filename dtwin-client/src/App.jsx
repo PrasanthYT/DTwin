@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/ui/Home";
 
-function App() {
+const App = () => {
   return (
     <Router>
       <Routes>
