@@ -32,7 +32,7 @@ export default function AgeSelector() {
     };
 
     return (
-        <div className="min-h-screen bg-white px-4 pt-3 flex flex-col">
+        <div className="min-h-screen bg-white px-4">
             {/* Header */}
             <div className="mb-6 flex items-center justify-between w-full max-w-md">
                 <Button
@@ -49,9 +49,12 @@ export default function AgeSelector() {
             </div>
 
             {/* Title */}
-            <h1 className="text-[28px] font-semibold text-gray-900 mb-12 text-center">
-                What is your age?
-            </h1>
+            <div className="mb-8">
+                <h1 className="text-[28px] font-semibold text-gray-900 mb-12">
+                    {/* Removed text-center */}
+                    What is your age?
+                </h1>
+            </div>
 
             {/* Clickable Age Selector */}
             <div className="space-y-5 mb-12">
