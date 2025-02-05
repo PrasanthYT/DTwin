@@ -36,7 +36,7 @@ export default function HealthGenders() {
 
     return (
         <div className="min-h-screen bg-white p-4">
-            <div className="mx-auto">
+            <div className="mx-auto max-w-md">
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between">
                     <Button
@@ -64,7 +64,7 @@ export default function HealthGenders() {
                 <div className="relative">
                     {/* Scrollable Cards */}
                     <div
-                        className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-[20%] -mx-[20%] py-4 items-center scrollbar-hide"
+                        className="flex gap-4 overflow-x-auto px-[calc(50%-140px)] mx-auto snap-x snap-mandatory py-4 items-center scrollbar-hide"
                         ref={scrollRef}
                         style={{
                             scrollSnapType: "x mandatory",
