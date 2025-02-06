@@ -1,16 +1,16 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./components/ui/Home";
-import SignIn from "./components/ui/SignIn";
-import SignUp from "./components/ui/SignUp";
+import Home from "./pages/Home";
+import SignIn from "./components/auth/SignIn";
+import SignUp from "./components/auth/SignUp";
 import SearchCompo from "./components/SearchCompo/SearchCompo";
 import HealthAvatar from "./components/onboarding/health-avatar";
 import HealthVoice from "./components/onboarding/health-voice";
 // import { path } from 'path';
 import HealthDashboard from "./pages/Dashboard";
 import Chatbot from "./components/ai/ChatBot";
-import Onboarding from "./components/ui/LandingPage";
-import StartingPage from "./components/ui/StartingPage";
+import Onboarding from "./components/onboarding/LandingPage";
+import StartingPage from "./components/onboarding/StartingPage";
 
 const App = () => {
   return (
