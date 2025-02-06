@@ -8,6 +8,13 @@ import SearchResults from "./components/SearchCompo/SearchResults";
 import HealthAvatar from "./components/onboarding/health-avatar";
 import HealthVoice from "./components/onboarding/health-voice";
 import HealthDashboard from "./pages/Dashboard";
+import HeartAnalysis from "./components/ui/HeartAnalysis";
+import HeartRateMonitor from "./components/ui/HeartRateMonitor";
+import HealthSuggestions from "./components/ui/HealthSuggestions";
+import WorkoutActivityPage from "./components/ui/WorkoutActivityPage";
+import MindWellnessPage from "./components/ui/MindWellnessPage";
+import WellnessResourcePage from "./components/ui/WellnessResourcePage";
+import NutritionGuidancePage from "./components/ui/NutritionGuidancePage";
 import Chatbot from "./components/ai/ChatBot";
 import Onboarding from "./components/ui/LandingPage";
 import StartingPage from "./components/ui/StartingPage";
@@ -33,6 +40,14 @@ const App = () => {
         <Route path="/search" element={<SearchCompo />}></Route>
         <Route path="/text" element={<HealthText />}></Route>
         <Route path="/searchResults" element={<SearchResults />}></Route>
+      <Route path="/healthanalysis" element={<HeartAnalysis/>}/>
+      <Route path="/heartratemonitor" element={<HeartRateMonitor/>}/>
+      <Route path="/healthsuggestion" element={<HealthSuggestions/>}/>
+      <Route path="workoutactivitypage" element={<WorkoutActivityPage/>}/>
+      <Route path="/mindwellnesspage" element={<MindWellnessPage/>}/>
+      <Route path="/wellnessresourcepage" element={<WellnessResourcePage/>}/>
+      <Route path="/nutritionguidancepage" element={<NutritionGuidancePage/>}/>
+
       </Routes>
     </Router>
   );

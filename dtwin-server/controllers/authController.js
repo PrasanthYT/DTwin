@@ -1,6 +1,15 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { OAuth2Client } = require("google-auth-library");
+const axios = require("axios");
+
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+
+const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+
 
 exports.register = async (req, res) => {
   try {
@@ -44,5 +53,77 @@ exports.login = async (req, res) => {
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+// Step 1: Redirect user to Google OAuth
+exports.googleAuth = (req, res) => {
+  const authUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/fitness.activity.read",
+      "https://www.googleapis.com/auth/fitness.body.read",
+    ],
+  });
+  res.redirect(authUrl);
+};
+
+// Step 2: Handle OAuth callback and fetch user profile
+exports.googleCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+
+    const userInfo = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    });
+
+    let user = await User.findOne({ googleId: userInfo.data.id });
+
+    if (!user) {
+      user = new User({
+        username: userInfo.data.name,
+        googleId: userInfo.data.id,
+      });
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Google Fit Access Granted!", user });
+  } catch (error) {
+    res.status(500).json({ message: "OAuth Error", error });
+  }
+};
+
+// Step 3: Fetch Google Fit data and store in DB
+exports.getFitData = async (req, res) => {
+  try {
+    const user = await User.findOne({ googleId: req.user.googleId });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    oAuth2Client.setCredentials(user.tokens);
+
+    const response = await axios.post(
+      "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate",
+      {
+        aggregateBy: [
+          { dataTypeName: "com.google.step_count.delta" },
+          { dataTypeName: "com.google.calories.expended" },
+        ],
+        bucketByTime: { durationMillis: 86400000 },
+        startTimeMillis: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
+        endTimeMillis: Date.now(),
+      },
+      { headers: { Authorization: `Bearer ${user.tokens.access_token}` } }
+    );
+
+    user.googleFitData = response.data;
+    await user.save();
+
+    res.json({ message: "Data saved successfully!", data: user.googleFitData });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching data", error });
   }
 };
