@@ -4,9 +4,9 @@ import Home from "./pages/Home";
 import SignIn from "./components/auth/SignIn";
 import SignUp from "./components/auth/SignUp";
 import SearchCompo from "./components/SearchCompo/SearchCompo";
+import SearchResults from "./components/SearchCompo/SearchResults";
 import HealthAvatar from "./components/onboarding/health-avatar";
 import HealthVoice from "./components/onboarding/health-voice";
-// import { path } from 'path';
 import HealthDashboard from "./pages/Dashboard";
 import Chatbot from "./components/ai/ChatBot";
 import Onboarding from "./components/onboarding/LandingPage";
@@ -27,6 +27,7 @@ const App = () => {
         <Route path="/wellnessai" element={<Chatbot />} />
         <Route path="/home" element={<StartingPage />} />
         <Route path="/search" element={<SearchCompo />}></Route>
+        <Route path="/searchResults" element={<SearchResults />}></Route>
       </Routes>
     </Router>
   );
