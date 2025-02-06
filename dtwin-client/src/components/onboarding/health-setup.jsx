@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Logo from "/Vector.png";
 
-export default function HealthSetup() {
+export default function HealthSetup({ nextStep }) {
   return (
     <div className="min-h-screen bg-blue-600 px-6 pb-8 relative overflow-hidden flex items-center justify-center">
       {/* Background Pattern with Logo Texture */}
@@ -15,7 +15,10 @@ export default function HealthSetup() {
             src={Logo}
             alt="Background Texture"
             className="w-16 h-16 absolute"
-            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
           />
         ))}
       </div>
@@ -31,8 +34,12 @@ export default function HealthSetup() {
         </Card>
 
         {/* Text Content */}
-        <h1 className="text-3xl font-bold text-white drop-shadow-lg">You're All Set Up.</h1>
-        <p className="text-2xl font-semibold text-white drop-shadow-lg">Your health score is 88.</p>
+        <h1 className="text-3xl font-bold text-white drop-shadow-lg">
+          You're All Set Up.
+        </h1>
+        <p className="text-2xl font-semibold text-white drop-shadow-lg">
+          Your health score is 88.
+        </p>
 
         {/* Status Indicators */}
         <div className="flex gap-6 text-white/90">
@@ -47,13 +54,14 @@ export default function HealthSetup() {
         </div>
 
         {/* Action Button */}
-        <Button
-          className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
-          variant="ghost"
-        >
-          Let's Get Healthy
-          <Plus className="ml-2 h-5 w-5" />
-        </Button>
+          <Button
+            className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
+            variant="ghost"
+            onClick={nextStep}
+          >
+            Let's Get Healthy
+            <Plus className="ml-2 h-5 w-5" />
+          </Button>
       </div>
     </div>
   );

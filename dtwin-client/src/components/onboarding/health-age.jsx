@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 
-export default function AgeSelector() {
+export default function AgeSelector({ nextStep, prevStep }) {
     const [selectedAge, setSelectedAge] = useState(19);
     const scrollRef = useRef(null);
 
@@ -39,6 +39,7 @@ export default function AgeSelector() {
                     variant="outline"
                     size="icon"
                     className="h-10 w-10 rounded-xl border-gray-200"
+                    onClick={prevStep}
                 >
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
@@ -88,7 +89,7 @@ export default function AgeSelector() {
             </div>
 
             {/* Continue Button */}
-            <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6">
+            <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6" onClick={nextStep}>
                 Continue
                 <ChevronRight className="h-5 w-5" />
             </button>

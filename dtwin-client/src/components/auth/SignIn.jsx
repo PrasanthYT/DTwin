@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4200/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -29,14 +30,20 @@ export default function SignIn() {
         throw new Error(data.message || "Invalid credentials. Please try again.");
       }
 
-      alert("Login successful!");
+      toast.success("Login successful!");
+      
       // Save token or user info in localStorage/sessionStorage if needed
       // localStorage.setItem("token", data.token);
 
       setEmail("");
       setPassword("");
+
+      // Redirect to the dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000); // Delay for better UX
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -48,6 +55,8 @@ export default function SignIn() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 relative">
+      <Toaster position="top-center" reverseOrder={false} />
+
       {/* Blue Header Section */}
       <div className="absolute top-0 left-0 w-full bg-[#1A2B50] h-40 rounded-b-3xl flex flex-col items-center justify-center">
         <img src="/Vector.png" alt="Sign In Icon" className="w-8 h-8" />
@@ -58,8 +67,6 @@ export default function SignIn() {
       <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative mt-36">
         <div className="px-6 py-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-
             <div>
               <label className="block text-gray-700 text-sm font-medium">Email Address</label>
               <div className="relative mt-1">

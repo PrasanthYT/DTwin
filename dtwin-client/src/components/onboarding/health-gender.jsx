@@ -9,7 +9,7 @@ import Male from "../assets/male-illus.png";
 import Female from "../assets/female-illus.png";
 import Nottosay from "../assets/nottosay-illus.png";
 
-export default function HealthGenders() {
+export default function HealthGenders({ nextStep, prevStep }) {
     const [selectedGender, setSelectedGender] = useState(null);
     const scrollRef = useRef(null);
 
@@ -43,6 +43,7 @@ export default function HealthGenders() {
                         variant="outline"
                         size="icon"
                         className="h-10 w-10 rounded-xl border-gray-200"
+                        onClick={prevStep}
                     >
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -133,6 +134,7 @@ export default function HealthGenders() {
                     <Button
                         className="w-full px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700"
                         disabled={!selectedGender}
+                        onClick={nextStep}
                     >
                         Continue
                         <ArrowRight className="ml-2 h-5 w-5" />

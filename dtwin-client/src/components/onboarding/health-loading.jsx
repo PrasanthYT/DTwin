@@ -1,6 +1,6 @@
 import React from 'react';
 
-const HealthLoading = () => {
+const HealthLoading = ({ nextStep }) => {
   return (
     <div className="h-screen w-full bg-blue-950 flex flex-col items-center justify-center relative overflow-hidden">
       {/* Decorative background curves */}

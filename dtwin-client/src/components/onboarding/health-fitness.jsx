@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { cn } from '@/lib/utils';
 
-export default function HealthFitness() {
+export default function HealthFitness({ nextStep, prevStep }) {
     const [fitnessLevel, setFitnessLevel] = useState(0);
     const scrollRef = useRef(null);
 
@@ -51,6 +51,7 @@ export default function HealthFitness() {
                     variant="outline"
                     size="icon"
                     className="h-10 w-10 rounded-xl border-gray-200"
+                    onClick={prevStep}
                 >
                     <ChevronLeft className="h-6 w-6" />
                 </Button>
@@ -105,7 +106,7 @@ export default function HealthFitness() {
             </div>
 
             {/* Continue Button */}
-            <button className="w-full bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium">
+            <button className="w-full bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium" onClick={nextStep}>
                 Continue
                 <ChevronRight className="h-5 w-5" />
             </button>

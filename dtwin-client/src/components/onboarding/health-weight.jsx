@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
-export default function WeightSelector() {
+export default function WeightSelector({ nextStep, prevStep }) {
     const MIN_WEIGHT = 40;
     const MAX_WEIGHT = 200;
     const STEP = 1;
@@ -102,6 +102,7 @@ export default function WeightSelector() {
                         variant="outline"
                         size="icon"
                         className="h-10 w-10 rounded-xl border-gray-200"
+                        onClick={prevStep}
                     >
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -185,7 +186,7 @@ export default function WeightSelector() {
                     </div>
                 </div>
 
-                <Button className="w-full px-6 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                <Button className="w-full px-6 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={nextStep}>
                     Continue
                     <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

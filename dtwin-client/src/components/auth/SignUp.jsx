@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Eye, EyeOff, Plus } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -8,22 +10,21 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Hook for redirection
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
-    setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4200/api/auth/register", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,12 +38,17 @@ export default function SignUp() {
         throw new Error(data.message || "Something went wrong!");
       }
 
-      alert("Registration successful! You can now log in.");
+      toast.success("Registration successful! Redirecting...");
+      
+      setTimeout(() => {
+        navigate("/home"); // Redirect after 2 seconds
+      }, 2000);
+
       setEmail("");
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -50,6 +56,8 @@ export default function SignUp() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100 relative">
+      <Toaster position="top-center" reverseOrder={false} /> {/* Toast Notification */}
+
       {/* Blue Header Section */}
       <div className="absolute top-0 left-0 w-full bg-[#1A2B50] h-40 rounded-b-3xl flex flex-col items-center justify-center">
         <Plus className="text-white h-8 w-8" />
@@ -60,8 +68,6 @@ export default function SignUp() {
       <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative mt-36">
         <div className="px-6 py-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-
             <div>
               <label className="block text-gray-700 text-sm font-medium">Email Address</label>
               <div className="relative mt-1">

@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Bot, Heart, PillIcon as Pills, Scale, Smartphone } from "lucide-react";
 
-export default function HealthGoals() {
+export default function HealthGoals({ nextStep, prevStep }) {
   const [selectedGoal, setSelectedGoal] = useState("");
 
   const goals = [
@@ -26,6 +26,7 @@ export default function HealthGoals() {
             variant="outline"
             size="icon"
             className="h-10 w-10 rounded-xl border-gray-200"
+            onClick={prevStep}
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
@@ -62,6 +63,7 @@ export default function HealthGoals() {
         <Button
           className="mt-8 w-full bg-blue-600 py-6 text-base font-medium hover:bg-blue-700"
           disabled={!selectedGoal}
+          onClick={nextStep}
         >
           Continue
           <ArrowRight className="ml-2 h-5 w-5" />

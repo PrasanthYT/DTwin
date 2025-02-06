@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AVATAR_API = "https://api.dicebear.com/7.x/lorelei/svg?seed=";
 
@@ -41,15 +42,15 @@ export default function AvatarSelector() {
 
   return (
     <div className="flex flex-col items-center p-6 bg-white h-screen w-full rounded-2xl shadow-lg border border-gray-200">
-         <div className="w-full flex items-center justify-start gap-x-3 max-w-md">
-                            <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-10 w-10 rounded-xl border-gray-200"
-                    >
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-      <h2 className="text-2xl font-bold text-gray-900">Select Avatar</h2>
+      <div className="w-full flex items-center justify-start gap-x-3 max-w-md">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-xl border-gray-200"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h2 className="text-2xl font-bold text-gray-900">Select Avatar</h2>
       </div>
       <div className="relative flex items-center justify-center mt-6 w-full max-w-xs">
         {/* Previous Avatar (Faded) */}
@@ -108,10 +109,12 @@ export default function AvatarSelector() {
       >
         Random Wish ✨
       </Button>
-      <Button className="w-full mt-5 px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700">
-        Continue
-        <ArrowRight className="ml-2 h-5 w-5" />
-      </Button>
+      <Link to="/dashboard">
+        <Button className="w-full mt-5 px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700">
+          Continue
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+      </Link>
     </div>
   );
 }

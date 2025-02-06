@@ -69,7 +69,7 @@ const CustomSlider = ({ value, onChange }) => {
     );
 };
 
-export default function HealthSleepLevel() {
+export default function HealthSleepLevel({ nextStep, prevStep }) {
     const [sleepLevel, setSleepLevel] = useState(3);
 
     return (
@@ -80,6 +80,7 @@ export default function HealthSleepLevel() {
                     variant="outline"
                     size="icon"
                     className="h-10 w-10 rounded-xl border-gray-200"
+                    onClick={prevStep}
                 >
                     <ChevronLeft className="h-6 w-6" />
                 </Button>
@@ -118,7 +119,7 @@ export default function HealthSleepLevel() {
             </div>
 
             {/* Continue Button */}
-            <button className="w-full bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium">
+            <button className="w-full bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium" onClick={nextStep}>
                 Continue
                 <ChevronRight className="h-5 w-5" />
             </button>

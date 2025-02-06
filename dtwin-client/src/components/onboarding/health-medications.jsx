@@ -17,7 +17,7 @@ const medicationData = [
     { name: 'Benadryl', category: 'Antihistamine' }
 ];
 
-export default function ScrollableMedicationSelection() {
+export default function ScrollableMedicationSelection({ nextStep, prevStep }) {
     const [medications] = useState(medicationData);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMedications, setSelectedMedications] = useState([]);
@@ -48,7 +48,7 @@ export default function ScrollableMedicationSelection() {
         <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-200">
+                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-200" onClick={prevStep}>
                     <ChevronLeft className="h-6 w-6" />
                 </Button>
                 <Progress value={33} className="h-2 w-32" />
@@ -146,7 +146,7 @@ export default function ScrollableMedicationSelection() {
             {/* Continue Button */}
             <button
                 className="w-full bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium"
-                disabled={selectedMedications.length === 0}
+                onClick={nextStep}
             >
                 Continue
                 <ChevronRight className="h-5 w-5" />
