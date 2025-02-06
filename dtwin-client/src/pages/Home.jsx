@@ -10,11 +10,14 @@ import HealthMedication from '../components/onboarding/health-medications'
 import HealthSymptoms from '../components/onboarding/health-symptoms'
 import HealthSetup from '../components/onboarding/health-setup'
 import HealthLoading from '../components/onboarding/health-loading'
+import HealthHeartRate from '@/components/dashboard/health-heart-rate'
+import AvatarSelector from '@/components/onboarding/health-avatar'
+import Settings from '@/components/dashboard/settings'
 
 function Home() {
   return (
     <>
-        <HealthGoals />
+        {/* <HealthGoals />
         <HealthGenders />
         <HealthWeight />
         <HealthAge />
@@ -23,8 +26,12 @@ function Home() {
         <HealthSleepLevel />
         <HealthMedication />
         <HealthSymptoms />
+        
+        <HealthLoading /> */}
+        <HealthHeartRate />
+        {/* <AvatarSelector /> */}
         <HealthSetup />
-        <HealthLoading />
+        <Settings/>
     </>
 
   )
