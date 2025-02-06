@@ -92,7 +92,7 @@ export default function Settings() {
             {/* Gender Selection */}
             <div>
               <Label>Gender</Label>
-              <RadioGroup defaultValue="female" className="flex gap-4">
+              <RadioGroup defaultValue="male" className="flex gap-4">
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="male" id="male" />
                   <Label htmlFor="male">Male</Label>
