@@ -8,7 +8,10 @@ import HealthDashboard from "./components/ui/HealthDashboard";
 import HeartAnalysis from "./components/ui/HeartAnalysis";
 import HeartRateMonitor from "./components/ui/HeartRateMonitor";
 import HealthSuggestions from "./components/ui/HealthSuggestions";
-import WorkoutActivityPage from "./components/ui/Activityai";
+import WorkoutActivityPage from "./components/ui/WorkoutActivityPage";
+import MindWellnessPage from "./components/ui/MindWellnessPage";
+import WellnessResourcePage from "./components/ui/WellnessResourcePage";
+import NutritionGuidancePage from "./components/ui/NutritionGuidancePage";
 // import { path } from 'path';
 
 const App = () => {
@@ -24,6 +27,10 @@ const App = () => {
       <Route path="/heartratemonitor" element={<HeartRateMonitor/>}/>
       <Route path="/healthsuggestion" element={<HealthSuggestions/>}/>
       <Route path="workoutactivitypage" element={<WorkoutActivityPage/>}/>
+      <Route path="/mindwellnesspage" element={<MindWellnessPage/>}/>
+      <Route path="/wellnessresourcepage" element={<WellnessResourcePage/>}/>
+      <Route path="/nutritionguidancepage" element={<NutritionGuidancePage/>}/>
+
       </Routes>
     </Router>
   );
