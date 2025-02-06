@@ -8,6 +8,7 @@ import HealthDashboard from "./components/ui/HealthDashboard";
 import HeartAnalysis from "./components/ui/HeartAnalysis";
 import HeartRateMonitor from "./components/ui/HeartRateMonitor";
 import HealthSuggestions from "./components/ui/HealthSuggestions";
+import WorkoutActivityPage from "./components/ui/Activityai";
 // import { path } from 'path';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
       <Route path="/healthanalysis" element={<HeartAnalysis/>}/>
       <Route path="/heartratemonitor" element={<HeartRateMonitor/>}/>
       <Route path="/healthsuggestion" element={<HealthSuggestions/>}/>
+      <Route path="workoutactivitypage" element={<WorkoutActivityPage/>}/>
       </Routes>
     </Router>
   );
