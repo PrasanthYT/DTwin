@@ -22,9 +22,6 @@ const App = () => {
       <Route path="/search" element={<SearchCompo />}></Route>
       <Route path="/avatar" element={<HealthAvatar />}></Route>
       <Route path="/voice" element={<HealthVoice />}></Route>
-        <Route path="/" element={<Home />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/dashboard" element={<HealthDashboard />} />
         <Route path="/wellnessai" element={<Chatbot />} />
