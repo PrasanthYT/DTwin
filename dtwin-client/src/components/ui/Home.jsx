@@ -8,6 +8,8 @@ import HealthFitness from '../onboarding/health-fitness'
 import HealthSleepLevel from '../onboarding/health-sleeplevel'
 import HealthMedication from '../onboarding/health-medications'
 import HealthSymptoms from '../onboarding/health-symptoms'
+import HealthSetup from '../onboarding/health-setup'
+import HealthLoading from '../onboarding/health-loading'
 
 function Home() {
   return (
@@ -21,6 +23,8 @@ function Home() {
         <HealthSleepLevel />
         <HealthMedication />
         <HealthSymptoms />
+        <HealthSetup />
+        <HealthLoading />
     </>
 
   )

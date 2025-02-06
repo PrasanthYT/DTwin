@@ -2,12 +2,14 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
 
 export default function SearchBox() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
 
   const API_KEY = "91ed0a11f18147dab60ff46998078997"
   const API_URL = "https://api.promptrepo.com/api/private/fuck-sheet5"
@@ -72,11 +74,15 @@ export default function SearchBox() {
     }
   }
 
+  const handleBackClick = () => {
+    navigate('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-blue-600 text-white p-4 flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="text-white">
+        <Button onClick={handleBackClick} variant="ghost" size="icon" className="text-white">
           <ChevronLeft className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-semibold">Search</h1>
