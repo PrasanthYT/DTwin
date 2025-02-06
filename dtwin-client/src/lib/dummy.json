@@ -1,0 +1,94 @@
+[
+    {
+      "name": "Idli",
+      "glycemicIndex": 35,
+      "protein": 4,
+      "carbohydrates": 25,
+      "set": "SetA",
+      "calories": 120,
+      "image": "https://st4.depositphotos.com/19960896/31275/i/380/depositphotos_312751344-stock-photo-idli-sambhar-idly-sambar-popular.jpg"
+    },
+    {
+      "name": "Dosa",
+      "glycemicIndex": 45,
+      "protein": 4,
+      "carbohydrates": 29,
+      "set": "SetB",
+      "calories": 165,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Dosa_with_curry%26raita.jpg/112px-Dosa_with_curry%26raita.jpg"
+    },
+    {
+      "name": "Upma",
+      "glycemicIndex": 68,
+      "protein": 3,
+      "carbohydrates": 40,
+      "set": "SetB",
+      "calories": 250,
+      "image": "https://st3.depositphotos.com/5653638/17712/i/380/depositphotos_177125974-stock-photo-masala-oats-upma-healthy-breakfast.jpg"
+    },
+    {
+      "name": "Poha",
+      "glycemicIndex": 55,
+      "protein": 2,
+      "carbohydrates": 30,
+      "set": "SetB",
+      "calories": 180,
+      "image": "https://st2.depositphotos.com/5653638/11810/i/380/depositphotos_118105520-stock-photo-poha-or-aalu-poha-or.jpg"
+    },
+    {
+      "name": "Paratha (Aloo)",
+      "glycemicIndex": 80,
+      "protein": 3.5,
+      "carbohydrates": 50,
+      "set": "SetC",
+      "calories": 290,
+      "image": "https://st2.depositphotos.com/1585997/10376/i/380/depositphotos_103760454-stock-photo-paratha-flatbread-indian-cuisine.jpg"
+    }
+  ,
+
+    {
+      "name": "Chapati",
+      "glycemicIndex": 52,
+      "protein": 3,
+      "carbohydrates": 18,
+      "set": "SetB",
+      "calories": 150,
+      "image": "https://st4.depositphotos.com/19960896/24179/i/600/depositphotos_241795828-stock-photo-chapati-tava-roti-also-known.jpg"
+    },
+    {
+      "name": "Brown Rice",
+      "glycemicIndex": 50,
+      "protein": 2.6,
+      "carbohydrates": 40,
+      "set": "SetA",
+      "calories": 111,
+      "image": "https://st2.depositphotos.com/2444995/6446/i/600/depositphotos_64461441-stock-photo-raw-brown-rice.jpg"
+    },
+    {
+      "name": "White Rice",
+      "glycemicIndex": 72,
+      "protein": 2,
+      "carbohydrates": 45,
+      "set": "SetC",
+      "calories": 130,
+      "image": "https://static4.depositphotos.com/1008041/348/i/380/depositphotos_3485762-stock-photo-white-rice.jpg"
+    },
+    {
+      "name": "Dal (Lentils)",
+      "glycemicIndex": 30,
+      "protein": 9,
+      "carbohydrates": 20,
+      "set": "SetA",
+      "calories": 180,
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBSMOF9fo9Ry3VAw04PoPe_8dvaxbY_m9WTdJHXR9rVOJ5TL-I&s"
+    },
+    {
+      "name": "Rajma (Kidney Beans)",
+      "glycemicIndex": 29,
+      "protein": 8,
+      "carbohydrates": 24,
+      "set": "SetA",
+      "calories": 140,
+      "image": "https://st2.depositphotos.com/5653638/11489/i/380/depositphotos_114899228-stock-photo-cooked-red-kidney-beans-curry.jpg"
+    }  
+]

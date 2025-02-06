@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 
-export default function AgeSelector() {
+export default function AgeSelector({ nextStep, prevStep }) {
     const [selectedAge, setSelectedAge] = useState(19);
     const scrollRef = useRef(null);
 
@@ -32,13 +32,14 @@ export default function AgeSelector() {
     };
 
     return (
-        <div className="min-h-screen bg-white px-4 pt-3 flex flex-col">
+        <div className="min-h-screen bg-white px-4">
             {/* Header */}
             <div className="mb-6 flex items-center justify-between w-full max-w-md">
                 <Button
                     variant="outline"
                     size="icon"
                     className="h-10 w-10 rounded-xl border-gray-200"
+                    onClick={prevStep}
                 >
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
@@ -49,9 +50,12 @@ export default function AgeSelector() {
             </div>
 
             {/* Title */}
-            <h1 className="text-[28px] font-semibold text-gray-900 mb-12 text-center">
-                What is your age?
-            </h1>
+            <div className="mb-8">
+                <h1 className="text-[28px] font-semibold text-gray-900 mb-12">
+                    {/* Removed text-center */}
+                    What is your age?
+                </h1>
+            </div>
 
             {/* Clickable Age Selector */}
             <div className="space-y-5 mb-12">
@@ -85,7 +89,7 @@ export default function AgeSelector() {
             </div>
 
             {/* Continue Button */}
-            <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6">
+            <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6" onClick={nextStep}>
                 Continue
                 <ChevronRight className="h-5 w-5" />
             </button>
