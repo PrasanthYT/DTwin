@@ -137,12 +137,8 @@ export default function SearchBox() {
                       <div className="flex-shrink-0">
                         <img
                           src={food["Food Image"]}
-                          alt={food["Food Name"]}
+                          // alt={food["Food Name"]}
                           className="w-24 h-24 rounded-lg object-cover"
-                          onError={(e) => {
-                            e.target.src = "/api/placeholder/96/96"
-                            e.target.alt = "Food placeholder"
-                          }}
                         />
                       </div>
                       <div className="flex-grow">
