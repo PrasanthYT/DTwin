@@ -1,3 +1,4 @@
+const axios = require('axios')
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("./config/db");
@@ -99,6 +100,146 @@ app.post('/api/identify-food', async (req, res) => {
 
 app.post("/api/")
 
-// Start Server
+
+const FITBIT_CLIENT_ID = '23Q6CY';
+const FITBIT_CLIENT_SECRET = '1f097cf40008d2bcf4470f2cc62e7672';
+const REDIRECT_URI = 'http://localhost:5173';
+
+// Helper function to get date string for n days ago
+const getDateString = (daysAgo) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().split('T')[0];
+};
+
+// Helper function to handle errors
+const handleError = (error, res) => {
+  console.error('Error details:', {
+    message: error.message,
+    response: error.response?.data,
+    status: error.response?.status
+  });
+  
+  const status = error.response?.status || 500;
+  const message = error.response?.data?.errors?.[0]?.message || error.message;
+  
+  res.status(status).json({
+    error: message,
+    details: error.response?.data
+  });
+};
+
+app.get('/auth', (req, res) => {
+  const scopes = [
+    'activity',
+    'nutrition',
+    'heartrate',
+    'location',
+    'profile',
+    'settings',
+    'sleep',
+    'social',
+    'weight'
+  ].join('%20');
+  
+  const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${scopes}`;
+  res.json({ authUrl });
+});
+
+app.post('/token', async (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json({ error: 'Authorization code is required' });
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append('code', code);
+    params.append('grant_type', 'authorization_code');
+    params.append('redirect_uri', REDIRECT_URI);
+    
+    const tokenResponse = await axios.post('https://api.fitbit.com/oauth2/token', 
+      params,
+      {
+        auth: {
+          username: FITBIT_CLIENT_ID,
+          password: FITBIT_CLIENT_SECRET
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+    
+    res.json(tokenResponse.data);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
+app.get('/fitbit-data', async (req, res) => {
+  const { token } = req.query;
+  
+  if (!token) {
+    return res.status(400).json({ error: 'Access token is required' });
+  }
+
+  try {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
+
+    const today = getDateString(0);
+    const weekAgo = getDateString(6);
+    
+    // Fetch all required data
+    const [
+      profileResponse,
+      sleepResponse,
+      activityResponse,
+      heartRateResponse
+    ] = await Promise.all([
+      // Profile data
+      axios.get('https://api.fitbit.com/1/user/-/profile.json', config),
+      
+      // Sleep data for the week
+      axios.get(`https://api.fitbit.com/1.2/user/-/sleep/date/${weekAgo}/${today}.json`, config),
+      
+      // Activity data for the week
+      Promise.all(
+        Array.from({ length: 7 }, (_, i) => 
+          axios.get(`https://api.fitbit.com/1/user/-/activities/date/${getDateString(i)}.json`, config)
+        )
+      ),
+      
+      // Heart rate data for the week
+      Promise.all(
+        Array.from({ length: 7 }, (_, i) =>
+          axios.get(`https://api.fitbit.com/1/user/-/activities/heart/date/${getDateString(i)}/1d.json`, config)
+        )
+      )
+    ]);
+
+    // Process weekly data
+    const weeklyData = Array.from({ length: 7 }, (_, i) => {
+      const date = getDateString(6 - i);
+      return {
+        date,
+        activity: activityResponse[6 - i].data,
+        heartRate: heartRateResponse[6 - i].data,
+        sleep: sleepResponse.data.sleep.filter(s => s.dateOfSleep === date)[0] || null
+      };
+    });
+
+    res.json({
+      profile: profileResponse.data,
+      weeklyData
+    });
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
 const PORT = process.env.PORT || 4200;
 app.listen(PORT, () => console.log(`Server running on  http:/localhost:${PORT}`));

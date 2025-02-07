@@ -155,14 +155,13 @@ function Home() {
   const submitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-<<<<<<< Updated upstream
-      console.log("hi");
-      const response = await fetch("http://localhost:4200/api/auth/user-data", {
-=======
+
+      
+
       console.log("Submitting user data...");
 
       const response = await fetch("http://localhost:5000/api/auth/user-data", {
->>>>>>> Stashed changes
+
         method: "POST",
         headers: {
           "Content-Type": "application/json",
