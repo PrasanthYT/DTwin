@@ -117,7 +117,7 @@ function Home() {
     try {
       const token = sessionStorage.getItem("token");
       console.log("hi");
-      const response = await fetch("http://localhost:5000/api/auth/user-data", {
+      const response = await fetch("http://localhost:4200/api/auth/user-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
