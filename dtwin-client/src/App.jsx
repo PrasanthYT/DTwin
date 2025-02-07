@@ -12,6 +12,7 @@ import WorkoutActivityPage from "./components/ui/WorkoutActivityPage";
 import MindWellnessPage from "./components/ui/MindWellnessPage";
 import WellnessResourcePage from "./components/ui/WellnessResourcePage";
 import NutritionGuidancePage from "./components/ui/NutritionGuidancePage";
+import GoogleFitDashboard from "./components/ui/GoogleFitDashboard";
 // import { path } from 'path';
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
       <Route path="/mindwellnesspage" element={<MindWellnessPage/>}/>
       <Route path="/wellnessresourcepage" element={<WellnessResourcePage/>}/>
       <Route path="/nutritionguidancepage" element={<NutritionGuidancePage/>}/>
+      <Route path="/googlefitapi" element={<GoogleFitDashboard/>}/>
 
       </Routes>
     </Router>
