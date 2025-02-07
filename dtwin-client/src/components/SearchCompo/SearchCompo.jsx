@@ -14,8 +14,8 @@ export default function SearchBox() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API_KEY = "91ed0a11f18147dab60ff46998078997";
-  const API_URL = "https://api.promptrepo.com/api/private/fuck-sheet5";
+  const API_KEY = import.meta.env.PROMPTREPORT_API_KEY;
+  const API_URL = import.meta.env.PROMPTREPORT_API_URL;
 
   useEffect(() => {
     if (!query.trim()) {

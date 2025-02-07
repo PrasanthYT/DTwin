@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, googleAuth, googleCallback, getFitData, updateUserData } = require("../controllers/authController");
+const { register, login, googleAuth, googleCallback, getFitData, updateUserData, googleSignup } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
@@ -8,6 +8,7 @@ router.get("/", (req, res) => {
 });
 router.post("/register", register);
 router.post("/login", login);
+router.post('/google-signup', googleSignup);
 router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
 router.get("/fit-data", authMiddleware, getFitData);

@@ -35,7 +35,6 @@ const SearchResults = () => {
   try {
     // Get token from local storage (or context if you're using React state management)
     const token = localStorage.getItem("token");
-    console.log(token) // Ensure you're storing the token after login
 
     if (!token) {
       alert("User not authenticated!");
@@ -62,11 +61,10 @@ const SearchResults = () => {
       }
     );
 
-    alert("Food added successfully!");
-    console.log(response.data);
+    toast.success("Food added successfully!");
   } catch (error) {
     console.error("Error adding food:", error);
-    alert("Failed to add food.");
+    toast.error("Failed to add food.");
   }
 };
 

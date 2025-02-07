@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const FireBaseUser = require("../models/FireBaseUser");
 const { OAuth2Client } = require("google-auth-library");
 const axios = require("axios");
 
@@ -191,3 +192,34 @@ exports.updateUserData = async (req, res) => {
     res.status(500).json({ message: "Error updating user data", error });
   }
 };
+
+exports.googleSignup = async (req, res) => {
+  try {
+    const { name, email, photoURL, uid } = req.body;
+
+    // Check if the user already exists in the database
+    let user = await FireBaseUser.findOne({ email });
+
+    if (!user) {
+      // Create new user
+      user = new FireBaseUser({
+        name,
+        email,
+        photoURL,
+        googleId: uid,
+      });
+
+      await user.save();
+    }
+
+    res.status(200).json({ message: "User stored successfully", user });
+  } catch (error) {
+    console.error("Google Signup Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+
+
+
+

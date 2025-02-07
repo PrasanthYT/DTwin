@@ -3,6 +3,7 @@ import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { auth, googleProvider, signInWithPopup } from "../../lib/firebase";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,9 +50,43 @@ export default function SignIn() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign In");
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+  
+      const userData = {
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        uid: user.uid,
+      };
+  
+      localStorage.setItem("token", user.accessToken);
+  
+      const response = await fetch("http://localhost:4200/api/auth/google-signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to store user in DB");
+      }
+  
+      toast.success(`Welcome, ${user.displayName}!`);
+      setTimeout(() => navigate("/dashboard"), 1000);
+    } catch (error) {
+      console.error(error);
+      toast.error("Google Sign-In failed. Please try again.");
+    }
   };
+  
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 relative">
