@@ -35,7 +35,7 @@ export default function HealthGoals({ nextStep, prevStep, setUserData }) {
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <Progress value={33} className="h-2 w-32" />
+          <Progress value={11.11} className="h-2 w-32" />
           <Button variant="ghost" className="text-sm text-gray-600">
             Skip
           </Button>

@@ -60,7 +60,7 @@ export default function HealthFitness({ nextStep, prevStep, setUserData }) {
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <Progress value={33} className="h-2 w-32" />
+        <Progress value={66.66} className="h-2 w-32" />
         <Button variant="ghost" className="text-sm text-gray-600">
           Skip
         </Button>

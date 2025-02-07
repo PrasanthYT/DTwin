@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, googleAuth, googleCallback, getFitData, updateUserData, googleSignup } = require("../controllers/authController");
+const { register, login, googleAuth, googleCallback, getFitData, updateUserData, googleSignup, updateAvatar, storeHealthScore, getUser } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
@@ -13,5 +13,8 @@ router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
 router.get("/fit-data", authMiddleware, getFitData);
 router.post("/user-data", authMiddleware, updateUserData);
+router.post("/user-avatar", authMiddleware, updateAvatar);
+router.post("/user-health-score", authMiddleware, storeHealthScore);
+router.get("/user", authMiddleware, getUser);
 
 module.exports = router;

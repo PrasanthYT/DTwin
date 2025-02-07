@@ -13,14 +13,31 @@ const UserSchema = new mongoose.Schema({
     bloodGroup: String,
     fitnessLevel: String,
     sleepLevel: String,
-    medications: [
-      {
-        name: String,
-        category: String,
-      },
-    ],
+    medications: [{ name: String, category: String }],
     symptoms: [String],
     avatar: String,
+  },
+  healthData: {
+    healthScore: Number,
+    scoreBreakdown: {
+      fitness: Number,
+      sleep: Number,
+      nutrition: Number,
+      symptoms: Number,
+      medications: Number,
+      lifestyle: Number,
+      otherFactors: Number,
+    },
+    healthInsights: String,
+    improvementSteps: [
+      {
+        id: Number,
+        activity: String,
+        text: String,
+        completed: Boolean,
+        target: String,
+      },
+    ],
   },
 });
 

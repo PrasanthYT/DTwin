@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Logo from "/Vector.png";
 
-export default function HealthSetup({ setUserData }) {
-
-
+export default function HealthSetup({ healthScore, nextStep }) {
+  // ✅ Accept nextStep as a prop
   return (
     <div className="min-h-screen bg-blue-600 px-6 pb-8 relative overflow-hidden flex items-center justify-center">
       {/* Background Pattern with Logo Texture */}
@@ -29,7 +28,9 @@ export default function HealthSetup({ setUserData }) {
       <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
         {/* Score Card */}
         <Card className="w-36 h-36 bg-white rounded-3xl flex flex-col items-center justify-center shadow-xl relative border border-blue-200">
-          <span className="text-blue-600 text-6xl font-bold">88</span>
+          <span className="text-blue-600 text-6xl font-bold">
+            {healthScore}
+          </span>
           <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-white rounded-full p-3 shadow-lg border border-blue-300 flex items-center justify-center">
             <Plus className="w-6 h-6 text-blue-600" />
           </div>
@@ -40,7 +41,7 @@ export default function HealthSetup({ setUserData }) {
           You're All Set Up.
         </h1>
         <p className="text-2xl font-semibold text-white drop-shadow-lg">
-          Your health score is 88.
+          Your health score is {healthScore}.
         </p>
 
         {/* Status Indicators */}
@@ -57,6 +58,7 @@ export default function HealthSetup({ setUserData }) {
 
         {/* Action Button */}
         <Button
+          onClick={nextStep} // ✅ Call nextStep when clicked
           className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
           variant="ghost"
         >

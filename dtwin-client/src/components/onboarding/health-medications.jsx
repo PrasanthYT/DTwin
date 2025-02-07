@@ -70,7 +70,7 @@ export default function ScrollableMedicationSelection({
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <Progress value={33} className="h-2 w-32" />
+        <Progress value={88.88} className="h-2 w-32" />
         <Button variant="ghost" className="text-sm text-gray-600">
           Skip
         </Button>

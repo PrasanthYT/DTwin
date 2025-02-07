@@ -210,6 +210,37 @@ exports.updateUserData = async (req, res) => {
   }
 };
 
+exports.updateAvatar = async (req, res) => {
+  try {
+    const userId = req.user?.userId; // Ensure userId is extracted
+    const { avatar } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: User ID missing" });
+    }
+
+    if (!avatar) {
+      return res.status(400).json({ message: "Avatar URL is required" });
+    }
+
+    // Update the avatar in the database
+    const user = await User.findOneAndUpdate(
+      { userId },
+      { $set: { "userDetails.avatar": avatar } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Avatar updated successfully", avatar });
+  } catch (error) {
+    console.error("Error updating avatar:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 exports.googleSignup = async (req, res) => {
   try {
     const { name, email, photoURL, uid } = req.body;
@@ -233,5 +264,67 @@ exports.googleSignup = async (req, res) => {
   } catch (error) {
     console.error("Google Signup Error:", error);
     res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+exports.storeHealthScore = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { healthScore, scoreBreakdown, healthInsights, improvementSteps } =
+      req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: User ID missing" });
+    }
+
+    // Find user and update health data
+    const user = await User.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          healthData: {
+            healthScore,
+            scoreBreakdown,
+            healthInsights,
+            improvementSteps,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Health score updated successfully",
+      healthData: user.healthData,
+    });
+  } catch (error) {
+    console.error("Error storing health score:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+    const userId = req.user?.userId; // Extract userId from middleware
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: User ID missing" });
+    }
+
+    // Find user and exclude password
+    const user = await User.findOne({ userId }).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User data retrieved successfully", user });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
