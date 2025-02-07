@@ -24,7 +24,7 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4200/api/auth/register", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,9 +37,9 @@ export default function SignUp() {
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong!");
       }
-
+      sessionStorage.setItem("token", data.token);
       toast.success("Registration successful! Redirecting...");
-      
+
       setTimeout(() => {
         navigate("/home"); // Redirect after 2 seconds
       }, 2000);

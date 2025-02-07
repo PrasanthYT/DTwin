@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Logo from "/Vector.png";
 
-export default function HealthSetup({ nextStep }) {
+export default function HealthSetup({ submitData }) {
+
+
   return (
     <div className="min-h-screen bg-blue-600 px-6 pb-8 relative overflow-hidden flex items-center justify-center">
       {/* Background Pattern with Logo Texture */}
@@ -54,14 +56,14 @@ export default function HealthSetup({ nextStep }) {
         </div>
 
         {/* Action Button */}
-          <Button
-            className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
-            variant="ghost"
-            onClick={nextStep}
-          >
-            Let's Get Healthy
-            <Plus className="ml-2 h-5 w-5" />
-          </Button>
+        <Button
+          className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
+          variant="ghost"
+          onClick={submitData}
+        >
+          Let's Get Healthy
+          <Plus className="ml-2 h-5 w-5" />
+        </Button>
       </div>
     </div>
   );

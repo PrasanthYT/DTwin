@@ -49,21 +49,27 @@ export default function VoiceAIAnalysis() {
       }
     }
   };
-  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white p-6">
       <div className="mb-6 flex items-center justify-between w-full max-w-md">
-        <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-200">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-xl border-gray-200"
+        >
           <ArrowLeft className="h-6 w-6" />
         </Button>
         <Progress value={100} className="h-2 w-32 ml-3 rounded-sm  bg-black" />
-        <Button variant="ghost" className="text-sm text-gray-600">Skip</Button>
+        <Button variant="ghost" className="text-sm text-gray-600">
+          Skip
+        </Button>
       </div>
 
       <h2 className="text-xl font-bold text-center">Voice AI Analysis</h2>
       <p className="text-gray-500 text-center text-sm my-2">
-        Please say the following words below. Don’t worry, we don’t steal voice data.
+        Please say the following words below. Don’t worry, we don’t steal voice
+        data.
       </p>
 
       <div className="h-[300px] flex items-center">
@@ -73,31 +79,35 @@ export default function VoiceAIAnalysis() {
               key={index}
               className="absolute rounded-[50px] bg-blue-500"
               style={{
-                width: `${(3 + index * 3) / 12 * 100}%`,
-                height: `${(3 + index * 3) / 12 * 100}%`,
+                width: `${((3 + index * 3) / 12) * 100}%`,
+                height: `${((3 + index * 3) / 12) * 100}%`,
                 boxShadow: `0 0 10px rgba(0, 100, 255, ${0.2 + index * 0.1})`,
               }}
               animate={{
                 scale: listening ? 1.3 : 1,
                 opacity: listening ? 1 - index * 0.05 : 0.45,
               }}
-              transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
             />
           ))}
         </div>
       </div>
 
       <p className="mt-4 mb-3 text-3xl font-semibold text-center">
-          <span className="bg-gray-800 rounded-md text-white px-2 text-center">The lazy fox jumps</span>
-          <span className="text-gray-500 p-1">over the wild dog.</span>
+        <span className="bg-gray-800 rounded-md text-white px-2 text-center">
+          The lazy fox jumps
+        </span>
+        <span className="text-gray-500 p-1">over the wild dog.</span>
       </p>
 
-      <Button
-                        className="w-full px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700"
-                    >
-                        Continue
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+      <Button className="w-full px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700">
+        Continue
+        <ArrowRight className="ml-2 h-5 w-5" />
+      </Button>
     </div>
   );
 }

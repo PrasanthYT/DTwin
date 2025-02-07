@@ -16,7 +16,7 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4200/api/auth/login", {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,10 +33,7 @@ export default function SignIn() {
       toast.success("Login successful!");
       
       // Save token or user info in localStorage/sessionStorage if needed
-      localStorage.setItem("token", data.token);
-      // console.log(data.token)
-      console.log("tokennnnn", localStorage.getItem("token"));
-
+      sessionStorage.setItem("token", data.token);
 
       setEmail("");
       setPassword("");

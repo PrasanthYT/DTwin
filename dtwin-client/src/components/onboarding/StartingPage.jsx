@@ -43,7 +43,10 @@ const StartingPage = () => {
           to="/onboarding"
           className="flex items-center justify-center gap-2 w-48 p-3 bg-[#023324] text-white text-lg rounded-full shadow-md hover:bg-[#012218] transition-colors duration-300"
         >
-          Get Started <span className="text-lg"><img src="/arrow.png" alt="arrow" class="w-7 h-7"/></span>
+          Get Started{" "}
+          <span className="text-lg">
+            <img src="/arrow.png" alt="arrow" class="w-7 h-7" />
+          </span>
         </Link>
 
         {/* Sign In Link */}
