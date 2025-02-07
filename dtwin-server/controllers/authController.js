@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const FireBaseUser = require("../models/FireBaseUser");
 const { OAuth2Client } = require("google-auth-library");
 const axios = require("axios");
 
@@ -9,7 +10,6 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
 const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
 
 exports.register = async (req, res) => {
   try {
@@ -127,3 +127,34 @@ exports.getFitData = async (req, res) => {
     res.status(500).json({ message: "Error fetching data", error });
   }
 };
+
+exports.googleSignup = async (req, res) => {
+  try {
+    const { name, email, photoURL, uid } = req.body;
+
+    // Check if the user already exists in the database
+    let user = await FireBaseUser.findOne({ email });
+
+    if (!user) {
+      // Create new user
+      user = new FireBaseUser({
+        name,
+        email,
+        photoURL,
+        googleId: uid,
+      });
+
+      await user.save();
+    }
+
+    res.status(200).json({ message: "User stored successfully", user });
+  } catch (error) {
+    console.error("Google Signup Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+
+
+
+

@@ -34,6 +34,7 @@ app.post("/api/speech/generate", async (req, res) => {
   }
 });
 
+app.post("/api/")
 
 // Start Server
 const PORT = process.env.PORT || 4200;
