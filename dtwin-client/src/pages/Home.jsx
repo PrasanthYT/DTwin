@@ -71,16 +71,11 @@ function Home() {
         {...props}
         userData={userData}
         setUserData={setUserData}
+        submitData={submitData} // Pass submitData function here
       />
     ),
-    // HealthLoading,
     (props) => (
-      <HealthSetup
-        {...props}
-        userData={userData}
-        setUserData={setUserData}
-        submitData={submitData}
-      />
+      <HealthSetup {...props} userData={userData} setUserData={setUserData} />
     ),
     (props) => (
       <HealthAvatar {...props} userData={userData} setUserData={setUserData} />
@@ -103,7 +98,7 @@ function Home() {
   const submitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      console.log("hi")
+      console.log("hi");
       const response = await fetch("http://localhost:5000/api/auth/user-data", {
         method: "POST",
         headers: {

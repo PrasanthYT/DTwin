@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 
@@ -16,12 +16,21 @@ const predefinedSymptoms = [
   "Shortness of Breath",
 ];
 
-export default function HealthSymptoms({ nextStep, prevStep, setUserData }) {
-  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+export default function HealthSymptoms({
+  nextStep,
+  prevStep,
+  userData,
+  setUserData,
+  submitData,
+}) {
+  const [selectedSymptoms, setSelectedSymptoms] = useState(
+    userData.symptoms || []
+  );
   const [customSymptom, setCustomSymptom] = useState("");
 
   const handleNext = () => {
     setUserData((prev) => ({ ...prev, symptoms: selectedSymptoms }));
+    submitData(); // ✅ Send data before moving to the next step
     nextStep();
   };
 

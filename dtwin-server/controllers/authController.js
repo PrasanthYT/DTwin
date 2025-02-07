@@ -146,7 +146,11 @@ exports.getFitData = async (req, res) => {
 
 exports.updateUserData = async (req, res) => {
   try {
-    const userId = req.user.userId; // Extract token from headers
+    const userId = req.user?.userId; // Extract userId safely from the request
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is missing from token" });
+    }
 
     const {
       healthGoal,
@@ -156,7 +160,7 @@ exports.updateUserData = async (req, res) => {
       bloodGroup,
       fitnessLevel,
       sleepLevel,
-      medications,
+      medications = [], // Ensure medications is always an array
       symptoms,
       avatar,
     } = req.body;
@@ -168,8 +172,20 @@ exports.updateUserData = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update userDetails object
+    // ✅ Ensure medications follow the correct schema (Array of Objects)
+    const formattedMedications = Array.isArray(medications)
+      ? medications
+          .map((med) =>
+            typeof med === "object" && med.name && med.category
+              ? { name: med.name, category: med.category }
+              : null
+          )
+          .filter(Boolean) // Removes invalid entries
+      : user.userDetails?.medications || [];
+
+    // ✅ Update userDetails while preserving existing values
     user.userDetails = {
+      ...user.userDetails,
       healthGoal: healthGoal || user.userDetails?.healthGoal,
       gender: gender || user.userDetails?.gender,
       weight: weight || user.userDetails?.weight,
@@ -177,19 +193,20 @@ exports.updateUserData = async (req, res) => {
       bloodGroup: bloodGroup || user.userDetails?.bloodGroup,
       fitnessLevel: fitnessLevel || user.userDetails?.fitnessLevel,
       sleepLevel: sleepLevel || user.userDetails?.sleepLevel,
-      medications: medications
-        ? medications.map((med) => `${med.name} (${med.category})`) // Convert objects to strings
-        : user.userDetails?.medications,
+      medications: formattedMedications, // ✅ Correctly formatted medications
       symptoms: symptoms || user.userDetails?.symptoms,
       avatar: avatar || user.userDetails?.avatar,
     };
 
     await user.save();
     console.log("User data updated successfully");
+
     res.status(200).json({ message: "User data updated successfully", user });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error updating user data", error });
+    console.error("Error updating user data:", error);
+    res
+      .status(500)
+      .json({ message: "Error updating user data", error: error.message });
   }
 };
 
@@ -218,8 +235,3 @@ exports.googleSignup = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
-
-
-
-

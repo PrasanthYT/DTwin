@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Logo from "/Vector.png";
 
-export default function HealthSetup({ submitData }) {
+export default function HealthSetup({ setUserData }) {
 
 
   return (
@@ -59,7 +59,6 @@ export default function HealthSetup({ submitData }) {
         <Button
           className="outline-white text-white hover:bg-white/90 rounded-md px-8 py-6 text-lg font-semibold"
           variant="ghost"
-          onClick={submitData}
         >
           Let's Get Healthy
           <Plus className="ml-2 h-5 w-5" />
