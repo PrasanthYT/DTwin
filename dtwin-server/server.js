@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("./config/db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
+const foodRoute = require("./routes/foodRoute");
 const authRoutes = require("./routes/auth");
 
 const app = express();
@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/food", foodRoute);
 app.post("/api/speech/generate", async (req, res) => {
   try {
     const data = req.body;
