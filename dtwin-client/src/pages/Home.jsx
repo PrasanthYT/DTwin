@@ -11,9 +11,6 @@ import HealthSymptoms from "../components/onboarding/health-symptoms";
 import HealthSetup from "../components/onboarding/health-setup";
 import HealthLoading from "../components/onboarding/health-loading";
 import HealthAvatar from "../components/onboarding/health-avatar"
-import HealthHeartRate from '@/components/dashboard/health-heart-rate'
-import AvatarSelector from '@/components/onboarding/health-avatar'
-import Settings from '@/components/dashboard/settings'
 
 function Home() {
   const [currentStep, setCurrentStep] = useState(0);
