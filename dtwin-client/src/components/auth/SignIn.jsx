@@ -64,7 +64,7 @@ export default function SignIn() {
   
       localStorage.setItem("token", user.accessToken);
   
-      const response = await fetch("http://localhost:4200/api/auth/google-signup", {
+      const response = await fetch("http://localhost:5000/api/auth/google-signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
