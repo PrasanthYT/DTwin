@@ -8,6 +8,8 @@ import {
   Plus,
   MessageSquare,
   Activity,
+  X,
+  LogOut,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/dashboard/bottom-nav";
@@ -157,6 +159,27 @@ const HealthDashboard = () => {
   const handleSearchBar = () => navigate("/search");
 
   const handleHeartRate = () => navigate("/heartratemonitor");
+  const handleHealthScore = () => navigate("/healthscore");
+  const handleAddMeds = () => navigate("/addmeds");
+
+  const handleRemoveMed = async (medication) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.post(
+        "http://localhost:4200/api/auth/remove-medication",
+        { medication },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchUserData(); // Refresh user data after removing
+    } catch (error) {
+      console.error("❌ Error removing medication:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("token"); // ✅ Remove token
+    navigate("/signin"); // ✅ Redirect to login page
+  };  
 
   return (
     // Added overflow-x-hidden to prevent horizontal scroll
@@ -194,14 +217,14 @@ const HealthDashboard = () => {
                   </div>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 opacity-80" />
+              <LogOut onClick={handleLogout} className="w-5 h-5 opacity-80" />
             </div>
 
             <div className="relative mt-4" onClick={handleSearchBar}>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search asklepios..."
+                placeholder="Search DTwin..."
                 className="w-full bg-white/20 rounded-xl py-2 pl-10 pr-4 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30"
               />
             </div>
@@ -236,7 +259,10 @@ const HealthDashboard = () => {
               <h2 className="font-semibold">Health Score</h2>
               <button className="text-gray-400">...</button>
             </div>
-            <Card className="bg-white border shadow-sm p-4">
+            <Card
+              className="bg-white border shadow-sm p-4"
+              onClick={handleHealthScore}
+            >
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-400 rounded-xl flex items-center justify-center text-white">
                   <span className="text-2xl font-bold">{healthScore}</span>
@@ -261,7 +287,10 @@ const HealthDashboard = () => {
               </Button>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <Card onClick={handleHeartRate} className="bg-blue-500 text-white border-0 p-3">
+              <Card
+                onClick={handleHeartRate}
+                className="bg-blue-500 text-white border-0 p-3"
+              >
                 <h3 className="text-sm">Heart Rate</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-bold">
@@ -317,9 +346,6 @@ const HealthDashboard = () => {
           <div>
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-semibold">Fitness & Activity</h2>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Plus className="w-4 h-4" /> Add Activity
-              </Button>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Card className="p-4 border bg-emerald-50">
@@ -351,10 +377,16 @@ const HealthDashboard = () => {
           <div className="mb-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-semibold">Medications</h2>
-              <Button variant="outline" size="sm" className="gap-1">
+              <Button
+                onClick={handleAddMeds}
+                variant="outline"
+                size="sm"
+                className="gap-1"
+              >
                 <Plus className="w-4 h-4" /> Add Med
               </Button>
             </div>
+
             {/* ✅ Extract Medications Safely */}
             {userData?.user?.userDetails?.medications?.length > 0 ? (
               userData.user.userDetails.medications.map((med, index) => (
@@ -369,6 +401,13 @@ const HealthDashboard = () => {
                         <p className="text-sm text-gray-500">{med.category}</p>
                       </div>
                     </div>
+                    <Button
+                      onClick={() => handleRemoveMed(med)}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <X className="w-4 h-4 text-red-500" />
+                    </Button>
                   </div>
                 </Card>
               ))

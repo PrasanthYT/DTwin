@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import SignIn from "./components/auth/SignIn";
 import SignUp from "./components/auth/SignUp";
@@ -22,38 +22,224 @@ import FoodScanner from "./components/ai/Foodscanner";
 import HealthHeartRate from "./components/dashboard/health-heart-rate";
 import HealthBloodPressure from "./components/dashboard/health-blood-pressure";
 import HealthWeightTracking from "./components/dashboard/health-weight-tracking";
+import HealthScore from "./components/ui/HealthDashboard";
+import AddMeds from "./components/onboarding/health-addmeds";
+
+// PrivateRoute component to protect routes
+const PrivateRoute = ({ children }) => {
+  const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return children;
+};
+
+// PublicRoute component to prevent authenticated users from accessing auth pages
+const PublicRoute = ({ children }) => {
+  const token = sessionStorage.getItem("token");
+
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
+
 const App = () => {
+  useEffect(() => {
+    if (!localStorage.getItem("hasVisited")) {
+      localStorage.setItem("hasVisited", "true");
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<StartingPage />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/dashboard" element={<HealthDashboard />} />
-        <Route path="/signup" element={<SignUp />} />
+        {/* Public routes */}
+        <Route
+          path="/signin"
+          element={
+            <PublicRoute>
+              <SignIn />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <PublicRoute>
+              <Onboarding />
+            </PublicRoute>
+          }
+        />
         <Route path="/home" element={<Home />} />
-        <Route path="/search" element={<SearchCompo />}></Route>
-        <Route path="/healthsuggestion" element={<HealthSuggestions />} />
-        <Route path="/voice" element={<HealthVoice />}></Route>
-        <Route path="/wellnessai" element={<Chatbot />} />
-        <Route path="/text" element={<HealthText />}></Route>
-        <Route path="/searchResults" element={<SearchResults />}></Route>
-        <Route path="/healthanalysis" element={<HeartAnalysis />} />
-        <Route path="/heartratemonitor" element={<HealthHeartRate />} />
-        <Route path="/workoutactivitypage" element={<WorkoutActivityPage />} />
-        <Route path="/mindwellnesspage" element={<MindWellnessPage />} />
+
+        {/* Protected routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <HealthDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <PrivateRoute>
+              <SearchCompo />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/healthsuggestion"
+          element={
+            <PrivateRoute>
+              <HealthSuggestions />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/voice"
+          element={
+            <PrivateRoute>
+              <HealthVoice />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/wellnessai"
+          element={
+            <PrivateRoute>
+              <Chatbot />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/text"
+          element={
+            <PrivateRoute>
+              <HealthText />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/searchResults"
+          element={
+            <PrivateRoute>
+              <SearchResults />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/healthanalysis"
+          element={
+            <PrivateRoute>
+              <HeartAnalysis />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/heartratemonitor"
+          element={
+            <PrivateRoute>
+              <HealthHeartRate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/workoutactivitypage"
+          element={
+            <PrivateRoute>
+              <WorkoutActivityPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/mindwellnesspage"
+          element={
+            <PrivateRoute>
+              <MindWellnessPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/wellnessresourcepage"
-          element={<WellnessResourcePage />}
+          element={
+            <PrivateRoute>
+              <WellnessResourcePage />
+            </PrivateRoute>
+          }
         />
         <Route
           path="/nutritionguidancepage"
-          element={<NutritionGuidancePage />}
+          element={
+            <PrivateRoute>
+              <NutritionGuidancePage />
+            </PrivateRoute>
+          }
         />
-        <Route path="/Fitbit" element={<Fitbit />} />
-        <Route path="/foodscan" element={<FoodScanner />} />
-        <Route path="/bloodpressure" element={<HealthBloodPressure />} />
-        <Route path="/weighttrack" element={<HealthWeightTracking />} />
+        <Route
+          path="/Fitbit"
+          element={
+            <PrivateRoute>
+              <Fitbit />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/foodscan"
+          element={
+            <PrivateRoute>
+              <FoodScanner />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bloodpressure"
+          element={
+            <PrivateRoute>
+              <HealthBloodPressure />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/weighttrack"
+          element={
+            <PrivateRoute>
+              <HealthWeightTracking />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/healthscore"
+          element={
+            <PrivateRoute>
+              <HealthScore />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/addmeds"
+          element={
+            <PrivateRoute>
+              <AddMeds />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Default route */}
+        <Route path="/" element={<StartingPage />} />
       </Routes>
     </Router>
   );

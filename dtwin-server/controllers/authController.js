@@ -173,7 +173,7 @@ exports.updateUserData = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log(healthReport)
+    console.log(healthReport);
     // ✅ Ensure medications follow the correct schema (Array of Objects)
     const formattedMedications = Array.isArray(medications)
       ? medications
@@ -244,6 +244,70 @@ exports.updateAvatar = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+exports.updateUserMedications = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { medications } = req.body;
+
+    if (!Array.isArray(medications)) {
+      return res.status(400).json({ message: "Invalid medications format" });
+    }
+
+    // ✅ Format Medications Properly
+    const formattedMedications = medications
+      .map((med) =>
+        typeof med === "object" && med.name && med.category
+          ? { name: med.name, category: med.category }
+          : null
+      )
+      .filter(Boolean); // Removes invalid entries
+
+    const user = await User.findOneAndUpdate(
+      { userId },
+      { $set: { "userDetails.medications": formattedMedications } },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Medications updated successfully",
+      medications: user.userDetails.medications,
+    });
+  } catch (error) {
+    console.error("❌ Error updating medications:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.removeUserMedication = async (req, res) => {
+  try {
+    const userId = req.user?.userId; // Extracted from middleware
+    const { medication } = req.body;
+
+    if (!medication || !medication.name) {
+      return res.status(400).json({ message: "Invalid medication data" });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { userId },
+      { $pull: { "userDetails.medications": { name: medication.name } } }, // Remove by name
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Medication removed successfully",
+      medications: user.userDetails.medications,
+    });
+  } catch (error) {
+    console.error("❌ Error removing medication:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 exports.googleSignup = async (req, res) => {
   try {
