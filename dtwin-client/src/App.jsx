@@ -8,7 +8,6 @@ import SearchResults from "./components/SearchCompo/SearchResults";
 import HealthVoice from "./components/onboarding/health-voice";
 import HealthDashboard from "./pages/Dashboard";
 import HeartAnalysis from "./components/ui/HeartAnalysis";
-import HeartRateMonitor from "./components/ui/HeartRateMonitor";
 import HealthSuggestions from "./components/ui/HealthSuggestions";
 import WorkoutActivityPage from "./components/ui/WorkoutActivityPage";
 import MindWellnessPage from "./components/ui/MindWellnessPage";
@@ -20,6 +19,7 @@ import Onboarding from "./components/onboarding/LandingPage";
 import StartingPage from "./components/onboarding/StartingPage";
 import Fitbit from "./components/Fitbit/Fitbit";
 import FoodScanner from "./components/ai/Foodscanner";
+import HealthHeartRate from "./components/dashboard/health-heart-rate";
 
 const App = () => {
   return (
@@ -38,13 +38,13 @@ const App = () => {
         <Route path="/text" element={<HealthText />}></Route>
         <Route path="/searchResults" element={<SearchResults />}></Route>
         <Route path="/healthanalysis" element={<HeartAnalysis />} />
-        <Route path="/heartratemonitor" element={<HeartRateMonitor />} />
+        <Route path="/heartratemonitor" element={<HealthHeartRate />} />
         <Route path="/workoutactivitypage" element={<WorkoutActivityPage />} />
         <Route path="/mindwellnesspage" element={<MindWellnessPage />} />
         <Route path="/wellnessresourcepage" element={<WellnessResourcePage />}/>
         <Route path="/nutritionguidancepage" element={<NutritionGuidancePage />}/>
         <Route path="/Fitbit" element={<Fitbit/>}/>
-        <Route path='foodscan' element={<FoodScanner/>}/>
+        <Route path='/foodscan' element={<FoodScanner/>}/>
       </Routes>
     </Router>
   );
