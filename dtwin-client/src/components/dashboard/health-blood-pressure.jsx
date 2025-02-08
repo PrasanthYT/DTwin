@@ -8,6 +8,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { FaHeart, FaRunning } from 'react-icons/fa'; // Import Font Awesome icons
 import { GiKidneys } from "react-icons/gi";
 import { LuBone } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
 
 const apiKey = "AIzaSyBpu2KDNWOqG_qzzVLqNfzrZ7SH-KYGvFY";
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -36,6 +37,7 @@ export default function HealthBloodPressure() {
   const [selectedRange, setSelectedRange] = useState("1 Week");
   const [error, setError] = useState(null);
   const [diseaseRisks, setDiseaseRisks] = useState([]);
+  const navigate = useNavigate();
 
   const fetchHealthRisksFromAI = async (healthReport) => {
     try {
@@ -136,14 +138,18 @@ export default function HealthBloodPressure() {
     fetchUserData();
   }, []);
 
+  const handleBack = () => {
+    navigate(-1);
+  }
+
   return (
     <div className="max-w-md mx-auto bg-gray-50 min-h-screen p-4">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-xl bg-white">
+          <Button onClick={handleBack} variant="ghost" size="icon" className="rounded-xl bg-white">
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-semibold">Blood Sugar Stats</h1>
+          <h1 className="text-xl font-semibold">Analytics</h1>
         </div>
         <Button variant="ghost" size="icon">
           <MoreHorizontal className="h-6 w-6" />

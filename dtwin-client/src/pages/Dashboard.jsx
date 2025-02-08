@@ -69,7 +69,9 @@ const HealthDashboard = () => {
     }
   };
 
-  const username = userData?.user?.username || "User";
+  const email = userData?.user?.username || ""; // Ensure username (email) exists
+  const extractedName = email.split("@")[0]; // Get part before '@'
+  const username = userData?.user?.name || extractedName || "User";
   const healthScore = userData?.user?.healthData?.healthScore || "--";
   const userId = userData?.user?.userId; // Corrected userId extraction
 
@@ -179,7 +181,7 @@ const HealthDashboard = () => {
   const handleLogout = () => {
     sessionStorage.removeItem("token"); // ✅ Remove token
     navigate("/signin"); // ✅ Redirect to login page
-  };  
+  };
 
   return (
     // Added overflow-x-hidden to prevent horizontal scroll
@@ -257,7 +259,6 @@ const HealthDashboard = () => {
           <div>
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-semibold">Health Score</h2>
-              <button className="text-gray-400">...</button>
             </div>
             <Card
               className="bg-white border shadow-sm p-4"
@@ -282,9 +283,6 @@ const HealthDashboard = () => {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Smart Health Metrics</h2>
-              <Button variant="link" className="text-blue-500 p-0">
-                See All
-              </Button>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <Card

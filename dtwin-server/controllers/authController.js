@@ -308,7 +308,6 @@ exports.removeUserMedication = async (req, res) => {
   }
 };
 
-
 exports.googleSignup = async (req, res) => {
   try {
     const { name, email, photoURL, uid } = req.body;
@@ -372,6 +371,31 @@ exports.storeHealthScore = async (req, res) => {
   } catch (error) {
     console.error("Error storing health score:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.userId; // Extracted from middleware
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: "Name is required." });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      {userId}, // ✅ Correct: Pass ObjectId directly
+      { name },
+      { new: true, select: "name" } // Return updated fields
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.json({ message: "Profile updated successfully!", user: updatedUser });
+  } catch (error) {
+    console.error("❌ Error updating profile:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

@@ -4,6 +4,7 @@ import { Camera, Settings, FlipHorizontal, ArrowLeft, RotateCcw, Plus } from 'lu
 import './Foodscan.css'
 import axios from 'axios';
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 
 const FoodScanner = () => {
     const [capturedImage, setCapturedImage] = useState(null);
@@ -14,6 +15,7 @@ const FoodScanner = () => {
     const [facingMode, setFacingMode] = useState('environment');
     const [quantity, setQuantity] = useState('');
     const webcamRef = useRef(null);
+    const navigate = useNavigate();
 
     const videoConstraints = {
         width: 720,
@@ -84,6 +86,9 @@ const FoodScanner = () => {
         }
     };
     
+    const handleBack = () => {
+        navigate("/dashboard");
+    };
 
     const ScannerOverlay = () => (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -236,10 +241,10 @@ const FoodScanner = () => {
                     {/* Camera Controls */}
                     <div className="absolute bottom-8 left-0 right-0 flex justify-around items-center px-8">
                         <button
-                            onClick={() => {}}
+                            onClick={handleBack}
                             className="w-12 h-12 bg-black/30 backdrop-blur-lg rounded-full flex items-center justify-center transition-all hover:bg-black/40 border border-white/20"
                         >
-                            <Settings className="text-white" size={24} />
+                            <ArrowLeft className="text-white" size={24} />
                         </button>
                         
                         <button

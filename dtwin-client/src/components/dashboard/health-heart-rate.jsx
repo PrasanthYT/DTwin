@@ -142,6 +142,10 @@ export default function HealthHeartRate() {
     navigate(-1);
   };
 
+  const handleFullReport = () => {
+    navigate("/healthanalysis");
+  }
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen p-4">
       <div className="flex items-center justify-between mb-8">
@@ -222,8 +226,8 @@ export default function HealthHeartRate() {
         </CardContent>
       </Card>
 
-      <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6">
-        Continue
+      <button onClick={handleFullReport} className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6">
+        View Full Report
         <ChevronRight className="h-5 w-5" />
       </button>
     </div>

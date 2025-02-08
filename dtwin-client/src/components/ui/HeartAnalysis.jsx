@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const HeartAnalysis = () => {
   const [heartData, setHeartData] = useState({
@@ -10,6 +11,7 @@ const HeartAnalysis = () => {
     maxHeartRate: "--",
     status: "Loading...",
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchHeartRateData();
@@ -57,6 +59,10 @@ const HeartAnalysis = () => {
     return "Healthy";
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  }
+
   return (
     <div className="w-screen h-screen bg-[#F2F7FB] p-6 flex flex-col relative">
       {/* Header */}
@@ -65,6 +71,7 @@ const HeartAnalysis = () => {
           variant="outline"
           size="icon"
           className="h-10 w-10 rounded-xl border-gray-200"
+          onClick={handleBack}
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
@@ -98,7 +105,7 @@ const HeartAnalysis = () => {
       </p>
 
       {/* Placeholder for Side Image */}
-      <div className="absolute right-0 top-1/6 w-1/2 h-3/4 flex items-center flex-end">
+      <div className="absolute -right-7 top-20 w-1/2 h-3/4 flex items-center flex-end">
         <img
           src="/heartanalysis.png"
           alt="Heart Analysis"

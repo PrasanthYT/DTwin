@@ -236,7 +236,7 @@ export default function AddMeds() {
     };
 
     const handleback = () => {
-        navigate(-1);
+        navigate("/dashboard");
     }
   
     return (

@@ -15,7 +15,7 @@ import HealthAvatar from "../components/onboarding/health-avatar";
 import HealthLoading from "../components/onboarding/health-loading";
 import HealthText from "../components/onboarding/health-text";
 
-function Home() {
+function Home({ markOnboardingComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false); // Track loading state
   const [healthScore, setHealthScore] = useState(null);
@@ -163,6 +163,7 @@ function Home() {
       if (response.ok) {
         console.log("User data submitted successfully");
         await Get_metabolicscore(); // Call after successful submission
+        markOnboardingComplete(); // Mark onboarding as complete
       } else {
         console.error("Failed to submit data:", response.status);
         setLoading(false); // Hide loading on error

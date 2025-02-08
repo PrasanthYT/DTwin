@@ -1,5 +1,10 @@
-import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Home from "./pages/Home";
 import SignIn from "./components/auth/SignIn";
 import SignUp from "./components/auth/SignUp";
@@ -24,39 +29,47 @@ import HealthBloodPressure from "./components/dashboard/health-blood-pressure";
 import HealthWeightTracking from "./components/dashboard/health-weight-tracking";
 import HealthScore from "./components/ui/HealthDashboard";
 import AddMeds from "./components/onboarding/health-addmeds";
+import SplashScreen from "./components/onboarding/SplashScreen";
+import PrivateRoute from "./PrivateRoute";
+import Settings from "./components/dashboard/settings";
 
-// PrivateRoute component to protect routes
-const PrivateRoute = ({ children }) => {
-  const token = sessionStorage.getItem("token");
-
-  if (!token) {
-    return <Navigate to="/signin" replace />;
-  }
-
-  return children;
-};
-
-// PublicRoute component to prevent authenticated users from accessing auth pages
+// ✅ PublicRoute to prevent signed-in users from accessing auth pages
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem("token");
-
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
+  return token ? <Navigate to="/dashboard" replace /> : children;
 };
 
 const App = () => {
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const [hasVisited, setHasVisited] = useState(
+    localStorage.getItem("hasVisited")
+  );
+
+  // ✅ Show splash screen for 2.5 seconds before routing
   useEffect(() => {
-    if (!localStorage.getItem("hasVisited")) {
-      localStorage.setItem("hasVisited", "true");
-    }
+    setTimeout(() => setIsSplashVisible(false), 2500);
   }, []);
+
+  // ✅ Handle onboarding completion
+  const markOnboardingComplete = () => {
+    localStorage.setItem("hasVisited", "true");
+    setHasVisited("true");
+  };
+
+  // ✅ Show splash screen before routing
+  if (isSplashVisible) {
+    return <SplashScreen />;
+  }
 
   return (
     <Router>
       <Routes>
+        <Route
+          path="/"
+          element={
+            hasVisited ? <Navigate to="/dashboard" replace /> : <StartingPage />
+          }
+        />
         {/* Public routes */}
         <Route
           path="/signin"
@@ -82,7 +95,10 @@ const App = () => {
             </PublicRoute>
           }
         />
-        <Route path="/home" element={<Home />} />
+        <Route
+          path="/home"
+          element={<Home onComplete={markOnboardingComplete} />}
+        />
 
         {/* Protected routes */}
         <Route
@@ -98,6 +114,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <SearchCompo />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Settings />
             </PrivateRoute>
           }
         />
@@ -206,7 +230,7 @@ const App = () => {
           }
         />
         <Route
-          path="/bloodpressure"
+          path="/analytics"
           element={
             <PrivateRoute>
               <HealthBloodPressure />
@@ -237,9 +261,6 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
-        {/* Default route */}
-        <Route path="/" element={<StartingPage />} />
       </Routes>
     </Router>
   );

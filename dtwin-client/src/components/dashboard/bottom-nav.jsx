@@ -10,9 +10,9 @@ const BottomNav = () => {
 
   const navItems = [
     { id: "home", icon: Home, label: "Home", path: "/dashboard" }, // First left item
-    { id: "stats", icon: BarChart2, label: "Stats", path: "/dashboard" }, // Second left item
+    { id: "stats", icon: BarChart2, label: "Stats", path: "/analytics" }, // Second left item
     { id: "food", icon: Sparkles, label: "Food", path: "/healthsuggestion" }, // First right item
-    { id: "settings", icon: Settings, label: "Settings", path: "/dashboard" } // Second right item
+    { id: "settings", icon: Settings, label: "Settings", path: "/settings" } // Second right item
   ];
 
   return (
