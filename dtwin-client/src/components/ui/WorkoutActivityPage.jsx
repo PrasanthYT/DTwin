@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import axios from 'axios';
 import { Link } from "react-router-dom";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Skeleton } from '@/components/ui/skeleton';
 
 const apiKey = "AIzaSyDJH8fXrHqeWcN7zqhye1-s6WJqt2AEKaY"; // Replace with your actual API key
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -111,6 +112,46 @@ AI should retrieve actual user data and process it accordingly.
 Context-aware recommendations should be generated based on user-specific input.
 Strict adherence to JSON format is required for seamless data processing`,
 });
+const MetricsLoadingSkeleton = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 mt-3 md:grid-cols-3 gap-4">
+    {[1, 2, 3].map((i) => (
+      <Card key={i} className="overflow-hidden">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const StepsLoadingSkeleton = () => (
+  <div className="space-y-8 mt-8">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div key={i} className="flex items-start space-x-4">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="flex-1">
+          <div className="bg-white p-4 rounded-xl">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const WorkoutActivityPage = () => {
   const [activities, setActivities] = useState([]);
@@ -119,22 +160,26 @@ const WorkoutActivityPage = () => {
 
   const [fitnessMetrics,setFitnessMetrics] = useState([]);
   const [video, setVideo] = useState(null);
+  const [userData, setUserData] = useState([]);
+  const [fitbitData, setFitbitData] = useState([]);
   const [stats, setStats] = useState({ views: 0, likes: 0, comments: 0 });
   const fetchHealthScore = async () => {
     setLoading(true);
     setError("");
 
     const healthInput = {
-      age: 25,
-      gender: "male",
-      weight_kg: 75,
-      steps: 10000,
-      active_minutes: 60,
-      calories_burnt: 500,
-      avg_heartRate: 75,
+      age: userData.userDetails.age,
+      gender: userData.userDetails.gender,
+      weight_kg: userData.userDetails.weight,
+      steps: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].activity.summary.steps,
+      active_minutes: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].sleep.minutesAwake,
+      calories_burnt: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].activity.summary.caloriesOut,
+      calories_BMR: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].activity.summary.caloriesBMR,
+      avg_heartRate: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].activity.summary.restingHeartRate,
+      sleep: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].sleep.minutesAsleep,
       description: "Suggest a personalized workout plan based on progress and fitness level"
     };
-
+    console.log(healthInput)
     try {
       const chatSession = model.startChat({
         generationConfig: {
@@ -158,11 +203,52 @@ const WorkoutActivityPage = () => {
 
     setLoading(false);
   };
+  const fetchFitbitData = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
+      if (response.status === 200) {
+        console.log("✅ Fitbit Data:", response.data);
+        setFitbitData(response.data);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching Fitbit data:", error);
+    }
+  };
+
+  const fetchUserData = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch("http://localhost:4200/api/auth/user", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("User Data:", data.user);
+        setUserData((prev) => ({
+          ...prev,
+          ...data.user,
+          healthScore: data.user.healthData?.healthScore || null, // ✅ Store healthScore
+        }));
+      } else {
+        console.error("Failed to fetch user data:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
   useEffect(() => {
     const fetchVideo = async () => {
       try {
-        const apiKey = "AIzaSyAlWKtULV4WwNejHBirIT5OodY_QZlSn9g"; // Replace with your YouTube API Key
+        const apiKey = "AIzaSyCVlNRgryFu9ogSwss9ZSgPSgd2oYAQM5o"; // Replace with your YouTube API Key
         const response = await axios.get(
           `https://www.googleapis.com/youtube/v3/search?part=snippet&q=guided+meditation+for+inner+peace&type=video&maxResults=1&key=${apiKey}`
         );
@@ -188,7 +274,7 @@ const WorkoutActivityPage = () => {
     const fetchVideoStats = async (videoId) => {
       try {
         const response = await axios.get(
-          `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=AIzaSyAlWKtULV4WwNejHBirIT5OodY_QZlSn9g`
+          `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=AIzaSyCVlNRgryFu9ogSwss9ZSgPSgd2oYAQM5o`
         );
         if (response.data.items.length > 0) {
           const statsData = response.data.items[0].statistics;
@@ -202,23 +288,15 @@ const WorkoutActivityPage = () => {
         console.error("Error fetching video stats: ", error);
       }
     };
-    fetchHealthScore()
+    fetchFitbitData()
+    fetchUserData()
     fetchVideo();
   }, []);
 
+  useEffect(()=>{
+    fetchHealthScore(); // Fetch AI data when component mounts
+  },[fitbitData,userData])
 
-
-  const [videoData, setVideoData] = useState({
-    id: "fitness-vid",
-    title: "Full Body HIIT Workout",
-    description:
-      "High-intensity training to boost metabolism and build strength",
-    stats: {
-      views: 32450,
-      likes: 1240,
-      comments: 186,
-    },
-  });
 
   const toggleActivity = (activityId) => {
     setActivities(
@@ -300,6 +378,9 @@ const WorkoutActivityPage = () => {
       </div>
 
       {/* Metrics Section */}
+      {loading ? (
+          <MetricsLoadingSkeleton />
+        ) : (
       <div className="p-4 md:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Activity Metrics</h2>
@@ -332,8 +413,11 @@ const WorkoutActivityPage = () => {
           ))}
         </div>
       </div>
-
+        )}
       {/* Activities Section */}
+      {loading ? (
+          <StepsLoadingSkeleton />
+        ) : (
       <div className="p-4 md:p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Workout Plan</h2>
@@ -393,7 +477,7 @@ const WorkoutActivityPage = () => {
           ))}
         </div>
       </div>
-
+        )}
       {/* Featured Content Section */}
       <div className="p-4 md:p-6">
         <h2 className="text-xl font-bold mb-4">Featured Workout</h2>
