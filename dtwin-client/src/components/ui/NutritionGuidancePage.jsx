@@ -123,7 +123,7 @@ const NutritionGuidancePage = () => {
   
 
   const fetchHealthScore = async () => {
-    setLoading(true);
+    setLoading(true)
     setError("");
 
     const healthInput = {
