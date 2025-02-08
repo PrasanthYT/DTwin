@@ -101,9 +101,9 @@ app.post('/api/identify-food', async (req, res) => {
 app.post("/api/")
 
 
-const FITBIT_CLIENT_ID = '23Q6CY';
-const FITBIT_CLIENT_SECRET = '1f097cf40008d2bcf4470f2cc62e7672';
-const REDIRECT_URI = 'http://localhost:5173';
+const FITBIT_CLIENT_ID = '23Q73T';
+const FITBIT_CLIENT_SECRET = 'fab427a2e8bf27a9df931327d5b11ca0';
+const REDIRECT_URI = 'http://localhost:5173/Fitbit';
 
 // Helper function to get date string for n days ago
 const getDateString = (daysAgo) => {
