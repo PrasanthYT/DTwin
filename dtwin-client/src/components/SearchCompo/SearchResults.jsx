@@ -1,26 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
+import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const foodData = location.state;
+  // const foodData = location.state;
+  const [foodData, setFoodData] = useState(location.state || JSON.parse(localStorage.getItem("selectedFood")));
+  
 
-  if (!foodData) {
+if (!foodData) {
     navigate("/search");
     return null;
   }
 
-  const nutritionData = [
-    { name: "Carbohydrate", value: parseFloat(foodData.carbohydrates) || 0, color: "#9333ea" },
-    { name: "Protein", value: parseFloat(foodData.protein) || 0, color: "#ef4444" },
-    { name: "Fat", value: parseFloat(foodData.fat) || 0, color: "#eab308" }
-  ];
+  useEffect(() => {
+    if (!foodData) {
+      navigate("/search");
+    } else {
+      localStorage.setItem("selectedFood", JSON.stringify(foodData));
+    }
+  }, [foodData]);
+
+    const nutritionData = [
+      { name: "Carbohydrate", value: parseFloat(foodData.carbohydrates) || 0, color: "#9333ea" },
+      { name: "Protein", value: parseFloat(foodData.protein) || 0, color: "#ef4444" },
+      { name: "Fat", value: parseFloat(foodData.fat) || 0, color: "#eab308" }
+    ];
 
   const totalCalories = nutritionData.reduce((sum, item) => {
     const caloriesPerGram = item.name === "Fat" ? 9 : 4;

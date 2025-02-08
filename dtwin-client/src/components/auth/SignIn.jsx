@@ -10,7 +10,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ export default function SignIn() {
       toast.success("Login successful!");
       
       // Save token or user info in localStorage/sessionStorage if needed
-      sessionStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.token);
 
       setEmail("");
       setPassword("");
