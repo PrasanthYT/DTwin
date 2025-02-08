@@ -163,6 +163,8 @@ exports.updateUserData = async (req, res) => {
       medications = [], // Ensure medications is always an array
       symptoms,
       avatar,
+      healthInput,
+      healthReport,
     } = req.body;
 
     // Find user by userId
@@ -171,7 +173,7 @@ exports.updateUserData = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    console.log(healthReport)
     // ✅ Ensure medications follow the correct schema (Array of Objects)
     const formattedMedications = Array.isArray(medications)
       ? medications
@@ -196,6 +198,8 @@ exports.updateUserData = async (req, res) => {
       medications: formattedMedications, // ✅ Correctly formatted medications
       symptoms: symptoms || user.userDetails?.symptoms,
       avatar: avatar || user.userDetails?.avatar,
+      healthInput: healthInput || user.userDetails?.healthInput,
+      healthReport: healthReport || user.userDetails?.healthReport,
     };
 
     await user.save();
@@ -321,7 +325,7 @@ exports.getUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    console.log("User data retrieved successfully");
     res.status(200).json({ message: "User data retrieved successfully", user });
   } catch (error) {
     console.error("Error fetching user data:", error);

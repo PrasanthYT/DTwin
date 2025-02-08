@@ -8,7 +8,6 @@ import { Link } from "react-router-dom";
 const AVATAR_API = "https://api.dicebear.com/7.x/lorelei/svg?seed=";
 
 export default function AvatarSelector({
-  userData,
   setUserData,
   submitAvatar,
 }) {

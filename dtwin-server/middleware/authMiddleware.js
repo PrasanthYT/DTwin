@@ -8,6 +8,7 @@ module.exports = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.log(err);
     res.status(400).json({ message: "Invalid token" });
   }
 };

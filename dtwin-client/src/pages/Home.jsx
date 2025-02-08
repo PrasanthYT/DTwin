@@ -1,3 +1,6 @@
+import React, { useEffect, useState } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import HealthGenders from "../components/onboarding/health-gender";
 import { useEffect, useState } from "react";
 import HealthGoals from "../components/onboarding/health-goal";
@@ -11,12 +14,12 @@ import HealthSymptoms from "../components/onboarding/health-symptoms";
 import HealthSetup from "../components/onboarding/health-setup";
 import HealthAvatar from "../components/onboarding/health-avatar";
 import HealthLoading from "../components/onboarding/health-loading";
-
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import HealthText from "../components/onboarding/health-text";
 
 function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false); // Track loading state
+  const [healthScore, setHealthScore] = useState(null);
 
   // User data state
   const [userData, setUserData] = useState({
@@ -29,80 +32,69 @@ function Home() {
     sleepLevel: "",
     medications: [],
     symptoms: [],
+    healthInput: "",
+    healthReport: "",
     avatar: "", // ✅ Ensure this has a valid value before submitting
   });
 
   useEffect(() => {
-    fetchUserData(); // Fetch user data on mount
-  }, []);
+    const fetchUserData = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          console.warn("No token found, user may not be authenticated.");
+          return;
+        }
 
-  // ✅ Function to fetch user data
-  const fetchUserData = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/auth/user", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+        const response = await fetch("http://localhost:4200/api/auth/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      if (response.ok) {
+        if (!response.ok) {
+          console.error("Failed to fetch user data:", response);
+          return;
+        }
+
         const data = await response.json();
         console.log("User Data:", data.user);
+
         setUserData((prev) => ({
           ...prev,
           ...data.user,
-          healthScore: data.user.healthData?.healthScore || null, // ✅ Store healthScore
+          healthScore: data.user?.healthData?.healthScore || null,
         }));
-      } else {
-        console.error("Failed to fetch user data:", response.status);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+    };
+
+    fetchUserData();
+  }, []);
+
+  // ✅ Function to fetch user data
 
   const steps = [
-    (props) => (
-      <HealthGoals {...props} userData={userData} setUserData={setUserData} />
-    ),
-    (props) => (
-      <HealthGenders {...props} userData={userData} setUserData={setUserData} />
-    ),
-    (props) => (
-      <HealthWeight {...props} userData={userData} setUserData={setUserData} />
-    ),
-    (props) => (
-      <HealthAge {...props} userData={userData} setUserData={setUserData} />
-    ),
-    (props) => (
-      <HealthBloodFGroup
-        {...props}
-        userData={userData}
-        setUserData={setUserData}
-      />
-    ),
-    (props) => (
-      <HealthFitness {...props} userData={userData} setUserData={setUserData} />
-    ),
-    (props) => (
-      <HealthSleepLevel
-        {...props}
-        userData={userData}
-        setUserData={setUserData}
-      />
-    ),
-    (props) => (
-      <HealthMedication
-        {...props}
-        userData={userData}
-        setUserData={setUserData}
-      />
-    ),
+    (props) => <HealthGoals {...props} setUserData={setUserData} />,
+    (props) => <HealthGenders {...props} setUserData={setUserData} />,
+    (props) => <HealthWeight {...props} setUserData={setUserData} />,
+    (props) => <HealthAge {...props} setUserData={setUserData} />,
+    (props) => <HealthBloodFGroup {...props} setUserData={setUserData} />,
+    (props) => <HealthFitness {...props} setUserData={setUserData} />,
+    (props) => <HealthSleepLevel {...props} setUserData={setUserData} />,
+    (props) => <HealthMedication {...props} setUserData={setUserData} />,
     (props) => (
       <HealthSymptoms
+        {...props}
+        userData={userData}
+        setUserData={setUserData}
+      />
+    ),
+    (props) => (
+      <HealthText
         {...props}
         userData={userData}
         setUserData={setUserData}
@@ -113,14 +105,13 @@ function Home() {
     (props) => (
       <HealthSetup
         {...props}
-        healthScore={userData.healthScore}
+        healthScore={healthScore}
         nextStep={nextStep}
       />
     ), // ✅ Pass nextStep
     (props) => (
       <HealthAvatar
         {...props}
-        userData={userData}
         setUserData={setUserData}
         submitAvatar={submitAvatar}
       />
@@ -156,43 +147,30 @@ function Home() {
     try {
       const token = sessionStorage.getItem("token");
 
-      
+      console.log("Submitting user data...", JSON.stringify(userData, null, 2));
 
-      console.log("Submitting user data...");
+      setLoading(true); // Loading before fetch
+      setCurrentStep(9); // Loading screen
 
-      const response = await fetch("http://localhost:5000/api/auth/user-data", {
-
+      const response = await fetch("http://localhost:4200/api/auth/user-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          healthGoal: userData.healthGoal,
-          gender: userData.gender,
-          weight: userData.weight,
-          age: userData.age,
-          bloodGroup: userData.bloodGroup,
-          fitnessLevel: userData.fitnessLevel,
-          sleepLevel: userData.sleepLevel,
-          medications: userData.medications,
-          symptoms: userData.symptoms,
-        }),
+        body: JSON.stringify(userData),
       });
 
       if (response.ok) {
         console.log("User data submitted successfully");
-
-        setLoading(true); // ✅ Show loading screen
-      setCurrentStep(9); // ✅ Move to HealthLoading
-
-        await Get_metabolicscore(); // ✅ Call AI to get health score
+        await Get_metabolicscore(); // Call after successful submission
       } else {
         console.error("Failed to submit data:", response.status);
+        setLoading(false); // Hide loading on error
       }
     } catch (error) {
       console.error("Error submitting data:", error);
-      setLoading(false);
+      setLoading(false); // Hide loading on error
     }
   };
 
@@ -209,7 +187,7 @@ function Home() {
       console.log("Submitting avatar:", avatarUrl);
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/user-avatar",
+        "http://localhost:4200/api/auth/user-avatar",
         {
           method: "POST",
           headers: {
@@ -309,24 +287,16 @@ function Home() {
       const storedSuccessfully = await storeHealthScore(metabolicScoreData);
 
       if (storedSuccessfully) {
-        // ✅ Update state and wait until it's updated
-        await new Promise((resolve) =>
-          setUserData((prev) => {
-            const updatedUser = {
-              ...prev,
-              healthScore: metabolicScoreData.healthScore,
-            };
-            resolve(updatedUser);
-            return updatedUser;
-          })
-        );
-
-        setLoading(false); // ✅ Hide loading screen
-      console.log("✅ Navigating to HealthSetup...");
-      setCurrentStep(10); // ✅ Go to `HealthSetup` directly
+        console.log("true");
+        setHealthScore(metabolicScoreData.healthScore); // Update healthScore state
+        setLoading(false); // Hide loading after everything is done
+        setCurrentStep(11); // Navigate to HealthSetup after data and loading are handled
+      } else {
+        setLoading(false); // Hide loading on error
       }
     } catch (error) {
       console.error("Error generating metabolic score:", error);
+      setLoading(false); // Hide loading on error
     }
   }
 
@@ -335,7 +305,7 @@ function Home() {
       const token = sessionStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/user-health-score",
+        "http://localhost:4200/api/auth/user-health-score",
         {
           method: "POST",
           headers: {

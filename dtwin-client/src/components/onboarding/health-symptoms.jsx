@@ -21,7 +21,6 @@ export default function HealthSymptoms({
   prevStep,
   userData,
   setUserData,
-  submitData,
 }) {
   const [selectedSymptoms, setSelectedSymptoms] = useState(
     userData.symptoms || []
@@ -30,7 +29,6 @@ export default function HealthSymptoms({
 
   const handleNext = () => {
     setUserData((prev) => ({ ...prev, symptoms: selectedSymptoms }));
-    submitData(); // ✅ Send data before moving to the next step
     nextStep();
   };
 
