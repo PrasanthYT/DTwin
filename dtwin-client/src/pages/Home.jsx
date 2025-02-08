@@ -305,6 +305,7 @@ function Home() {
 
       const response = await fetch(
         "http://localhost:4200/api/auth/user-health-score",
+        "http://localhost:4200/api/auth/user-health-score",
         {
           method: "POST",
           headers: {
