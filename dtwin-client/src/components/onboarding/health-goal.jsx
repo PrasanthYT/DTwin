@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Bot, Heart, PillIcon as Pills, Scale, Smartphone } from "lucide-react";
 
-export default function HealthGoals({ nextStep, prevStep }) {
+export default function HealthGoals({ nextStep, prevStep, setUserData }) {
   const [selectedGoal, setSelectedGoal] = useState("");
 
   const goals = [
@@ -16,6 +16,11 @@ export default function HealthGoals({ nextStep, prevStep }) {
     { id: "meds", label: "I wanna manage meds", icon: Pills },
     { id: "trying", label: "Just trying out the app", icon: Smartphone },
   ];
+
+  const handleNext = () => {
+    setUserData((prev) => ({ ...prev, healthGoal: selectedGoal }));
+    nextStep();
+  };
 
   return (
     <div className="min-h-screen bg-white p-4">
@@ -30,28 +35,48 @@ export default function HealthGoals({ nextStep, prevStep }) {
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <Progress value={33} className="h-2 w-32" />
+          <Progress value={11.11} className="h-2 w-32" />
           <Button variant="ghost" className="text-sm text-gray-600">
             Skip
           </Button>
         </div>
 
         {/* Title */}
-        <h1 className="mb-8 text-2xl font-bold">What is your health goal for the app?</h1>
+        <h1 className="mb-8 text-2xl font-bold">
+          What is your health goal for the app?
+        </h1>
 
         {/* Goals */}
-        <RadioGroup value={selectedGoal} onValueChange={setSelectedGoal} className="space-y-3">
+        <RadioGroup
+          value={selectedGoal}
+          onValueChange={setSelectedGoal}
+          className="space-y-3"
+        >
           {goals.map((goal) => {
             const Icon = goal.icon;
             return (
               <Card
                 key={goal.id}
-                className={`cursor-pointer border transition-all hover:border-blue-600 ${selectedGoal === goal.id ? "border-blue-600 bg-blue-600 text-white" : "bg-white"
-                  }`}
+                className={`cursor-pointer border transition-all hover:border-blue-600 ${
+                  selectedGoal === goal.id
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "bg-white"
+                }`}
               >
-                <label htmlFor={goal.id} className="flex cursor-pointer items-center gap-3 p-4">
-                  <RadioGroupItem value={goal.id} id={goal.id} className="sr-only" />
-                  <Icon className={`h-5 w-5 ${selectedGoal === goal.id ? "text-white" : "text-blue-600"}`} />
+                <label
+                  htmlFor={goal.id}
+                  className="flex cursor-pointer items-center gap-3 p-4"
+                >
+                  <RadioGroupItem
+                    value={goal.id}
+                    id={goal.id}
+                    className="sr-only"
+                  />
+                  <Icon
+                    className={`h-5 w-5 ${
+                      selectedGoal === goal.id ? "text-white" : "text-blue-600"
+                    }`}
+                  />
                   <span className="text-base">{goal.label}</span>
                 </label>
               </Card>
@@ -63,7 +88,7 @@ export default function HealthGoals({ nextStep, prevStep }) {
         <Button
           className="mt-8 w-full bg-blue-600 py-6 text-base font-medium hover:bg-blue-700"
           disabled={!selectedGoal}
-          onClick={nextStep}
+          onClick={handleNext}
         >
           Continue
           <ArrowRight className="ml-2 h-5 w-5" />

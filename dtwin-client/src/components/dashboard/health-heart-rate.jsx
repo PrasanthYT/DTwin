@@ -1,147 +1,94 @@
-import React, { useState } from 'react';
-import { ChevronLeft, FileChartColumn, Heart } from 'lucide-react';
+"use client"
+
+import { useState } from "react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
+import { Line, LineChart, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-const RectangularCurvedGraph = ({ data, width, height }) => {
-    const maxValue = Math.max(...data.map(d => d.value));
-    const minValue = Math.min(...data.map(d => d.value));
-    const range = maxValue - minValue || 1;
-    const curveRadius = 25;
-
-    const generatePath = () => {
-        let path = '';
-        data.forEach((point, index) => {
-            const x = (index / (data.length - 1)) * width;
-            const y = height - ((point.value - minValue) / range) * height;
-            
-            if (index === 0) {
-                path += `M ${x},${y}`;
-            } else {
-                path += ` L ${x},${y}`;
-            }
-        });
-        return path;
-    };
-
-    const generateAreaPath = () => {
-        let path = generatePath();
-        path += ` L ${width},${height} L 0,${height} Z`;
-        return path;
-    };
-
-    return (
-        <div className="relative w-full h-full">
-            <svg width={width} height={height} className="overflow-visible">
-                <defs>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05" />
-                    </linearGradient>
-                </defs>
-
-                {[...Array(5)].map((_, i) => (
-                    <line
-                        key={i}
-                        x1="0"
-                        y1={height * (i / 4)}
-                        x2={width}
-                        y2={height * (i / 4)}
-                        stroke="#E5E7EB"
-                        strokeWidth="1"
-                        strokeDasharray="4 4"
-                    />
-                ))}
-
-                <path d={generateAreaPath()} fill="url(#areaGradient)" className="transition-all duration-300" />
-                <path d={generatePath()} fill="none" stroke="#3B82F6" strokeWidth="2.5" className="transition-all duration-300" />
-            </svg>
-        </div>
-    );
+const dataSets = {
+  "1 Day": [
+    { day: "12AM", value: 80 },
+    { day: "6AM", value: 85 },
+    { day: "12PM", value: 90 },
+    { day: "6PM", value: 88 },
+  ],
+  "1 Week": [
+    { day: "Mon", value: 85 },
+    { day: "Tue", value: 82 },
+    { day: "Wed", value: 91 },
+    { day: "Thu", value: 80 },
+    { day: "Fri", value: 90 },
+    { day: "Sat", value: 88 },
+    { day: "Sun", value: 85 },
+  ],
+  "1 Month": [
+    { day: "Week 1", value: 87 },
+    { day: "Week 2", value: 83 },
+    { day: "Week 3", value: 89 },
+    { day: "Week 4", value: 84 },
+  ],
 };
 
 export default function HealthHeartRate() {
-    const [selectedPeriod, setSelectedPeriod] = useState("1 Week");
-    const periods = ["1 Day", "1 Week", "1 Month", "1 Year", "All"];
-    const heartRateData = [
-        { day: 'Mon', value: 85 },
-        { day: 'Tue', value: 75 },
-        { day: 'Wed', value: 80 },
-        { day: 'Thu', value: 95 },
-        { day: 'Fri', value: 90 },
-        { day: 'Sat', value: 88 },
-        { day: 'Sun', value: 82 }
-    ];
-    
-    const latestHeartRate = heartRateData[heartRateData.length - 1].value;
-    const status = latestHeartRate > 100 ? "High Risk" : latestHeartRate < 60 ? "Low" : "Normal";
-    
-    const getStatusBg = (status) => {
-        return status === "Normal" ? "bg-green-100" : status === "High Risk" ? "bg-red-100" : "bg-yellow-100";
-    };
-    
-    const getStatusColor = (status) => {
-        return status === "Normal" ? "text-green-600" : status === "High Risk" ? "text-red-600" : "text-yellow-600";
-    };
-
-    return (
-        <div className="min-h-screen bg-background p-4">
-            <div className="flex items-center justify-between">
-                <Button variant="outline" size="icon" className="rounded-xl">
-                    <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <h1 className="text-xl font-semibold">Heart Rate</h1>
-            </div>
-
-            <div className="mt-6 flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-red-100">
-                    <Heart className="h-5 w-5 text-red-500" />
-                </div>
-                <span className="text-4xl font-bold">{latestHeartRate}</span>
-                <span className="text-xl text-muted-foreground">BPM</span>
-            </div>
-
-            <div className="flex gap-2 mt-6 overflow-x-auto">
-                {periods.map((period) => (
-                    <Button
-                        key={period}
-                        variant={selectedPeriod === period ? "default" : "outline"}
-                        className="rounded-full"
-                        onClick={() => setSelectedPeriod(period)}
-                    >
-                        {period}
-                    </Button>
-                ))}
-            </div>
-
-            <Card className="p-6 rounded-xl w-full mt-6">
-                <RectangularCurvedGraph data={heartRateData} width={350} height={200} />
-            </Card>
-
-            <div className="px-4 grid gap-4">
-                <Card className={`p-4 ${getStatusBg(status)} border-none`}>
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${getStatusBg(status)}`}>
-                            <Heart className={`h-5 w-5 ${getStatusColor(status)}`} />
-                        </div>
-                        <div>
-                            <h3 className={`font-medium ${getStatusColor(status)}`}>{status}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                {status === "Normal"
-                                    ? "Your heart rate is within a healthy range (60-100 BPM)"
-                                    : status === "High Risk"
-                                    ? "Your heart rate is above the normal range (>100 BPM)"
-                                    : "Your heart rate is below the normal range (<60 BPM)"}
-                            </p>
-                        </div>
-                    </div>
-                </Card>
-
-                <Button className="w-full mt-6" size="lg">
-                    View Full Report
-                    <FileChartColumn className="ml-2 h-5 w-5" />
-                </Button>
-            </div>
+  const [selectedRange, setSelectedRange] = useState("1 Week");
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen p-4">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="rounded-xl">
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          <h1 className="text-xl font-semibold">Heart Rate</h1>
         </div>
-    );
+        <div className="bg-blue-50 text-blue-500 px-4 py-1 rounded-full text-sm">Normal</div>
+      </div>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="bg-red-50 p-2 rounded-xl">
+          <div className="text-red-500">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+          </div>
+        </div>
+        <div>
+          <span className="text-4xl font-bold">95</span>
+          <span className="text-xl text-gray-400 ml-1">BPM</span>
+        </div>
+      </div>
+
+      <Tabs defaultValue="1 Week" onValueChange={setSelectedRange}>
+        <TabsList className="flex gap-2 mb-8">
+          {Object.keys(dataSets).map((range) => (
+            <TabsTrigger key={range} value={range} className="rounded-full">
+              {range}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {Object.entries(dataSets).map(([range, data]) => (
+          <TabsContent key={range} value={range} className="mb-8 h-[200px] w-full">
+            <LineChart data={data} width={350} height={200}>
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8" }} />
+              <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
+            </LineChart>
+          </TabsContent>
+        ))}
+      </Tabs>
+
+      <Card className="bg-gray-50 border-none p-4 mt-4">
+        <CardContent>
+          <h2 className="text-lg font-semibold mb-2">Heart Rate Status</h2>
+          <p className="text-gray-500">Your heart rate is within the normal range.</p>
+        </CardContent>
+      </Card>
+
+      <button className="w-full max-w-md bg-[#0066FF] text-white rounded-xl py-4 flex items-center justify-center gap-2 text-[16px] font-medium mt-6">
+                Continue
+                <ChevronRight className="h-5 w-5" />
+            </button>
+    </div>
+  );
 }

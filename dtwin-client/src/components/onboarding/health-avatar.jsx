@@ -7,16 +7,27 @@ import { Link } from "react-router-dom";
 
 const AVATAR_API = "https://api.dicebear.com/7.x/lorelei/svg?seed=";
 
-export default function AvatarSelector() {
+export default function AvatarSelector({
+  userData,
+  setUserData,
+  submitAvatar,
+}) {
   const [avatars, setAvatars] = useState(["", "", ""]);
+  const [selectedAvatar, setSelectedAvatar] = useState(""); // Store selected avatar
   const [loading, setLoading] = useState(true);
-
+  console.log(selectedAvatar);
   const fetchAvatars = () => {
     setLoading(true);
     const newAvatars = Array(3)
       .fill(0)
       .map(() => `${AVATAR_API}${Math.random().toString(36).substring(7)}`);
+
     setAvatars(newAvatars);
+
+    setTimeout(() => {
+      setSelectedAvatar(newAvatars[1]); // ✅ Ensure selectedAvatar is set correctly
+    }, 50);
+
     setLoading(false);
   };
 
@@ -30,6 +41,7 @@ export default function AvatarSelector() {
       prev[2],
       `${AVATAR_API}${Math.random().toString(36).substring(7)}`,
     ]);
+    setSelectedAvatar(avatars[2]); // Update selected avatar
   };
 
   const handlePrev = () => {
@@ -38,6 +50,22 @@ export default function AvatarSelector() {
       prev[0],
       prev[1],
     ]);
+    setSelectedAvatar(avatars[0]); // Update selected avatar
+  };
+
+  const handleSubmit = () => {
+    if (!selectedAvatar) {
+      console.error("No avatar selected!");
+      return;
+    }
+
+    // ✅ First, update userData state with the selected avatar
+    setUserData((prev) => ({ ...prev, avatar: selectedAvatar }));
+
+    // ✅ Wait for the state to update, then submit
+    setTimeout(() => {
+      submitAvatar(selectedAvatar); // ✅ Pass selectedAvatar directly
+    }, 100); // Small delay to ensure state is updated
   };
 
   return (
@@ -58,7 +86,7 @@ export default function AvatarSelector() {
           onClick={handlePrev}
           src={avatars[0]}
           alt="Previous Avatar"
-          className="absolute left-0 w-24 h-24 rounded-full opacity-40"
+          className="absolute left-0 w-24 h-24 rounded-full opacity-40 cursor-pointer"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 0.4, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -76,7 +104,7 @@ export default function AvatarSelector() {
                 <div className="w-full h-full animate-pulse bg-gray-300 rounded-full"></div>
               ) : (
                 <img
-                  src={avatars[1]}
+                  src={selectedAvatar}
                   alt="Avatar"
                   className="w-full h-full rounded-full"
                 />
@@ -89,7 +117,7 @@ export default function AvatarSelector() {
           onClick={handleNext}
           src={avatars[2]}
           alt="Next Avatar"
-          className="absolute right-0 w-24 h-24 rounded-full opacity-40"
+          className="absolute right-0 w-24 h-24 rounded-full opacity-40 cursor-pointer"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 0.4, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -110,7 +138,10 @@ export default function AvatarSelector() {
         Random Wish ✨
       </Button>
       <Link to="/dashboard">
-        <Button className="w-full mt-5 px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700">
+        <Button
+          onClick={handleSubmit}
+          className="w-full mt-5 px-10 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700"
+        >
           Continue
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>

@@ -51,7 +51,10 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-between" style={{ backgroundColor: onboardingScreens[currentScreen].bgColor }}>
+    <div
+      className="h-screen flex flex-col items-center justify-between"
+      style={{ backgroundColor: onboardingScreens[currentScreen].bgColor }}
+    >
       {/* Progress Bar */}
       <Progress
         value={((currentScreen + 1) / onboardingScreens.length) * 100}
@@ -62,8 +65,12 @@ const Onboarding = () => {
       <div className="w-full h-full flex flex-col items-center justify-between relative overflow-hidden">
         {/* Text Content */}
         <div className="mt-12 px-6 text-left z-20">
-          <h2 className="text-xl font-bold mb-2">{onboardingScreens[currentScreen].title}</h2>
-          <p className="text-gray-600 mt-2">{onboardingScreens[currentScreen].description}</p>
+          <h2 className="text-xl font-bold mb-2">
+            {onboardingScreens[currentScreen].title}
+          </h2>
+          <p className="text-gray-600 mt-2">
+            {onboardingScreens[currentScreen].description}
+          </p>
         </div>
 
         {/* Image */}
@@ -81,7 +88,9 @@ const Onboarding = () => {
             <button
               onClick={nextScreen}
               className="rounded-xl w-14 h-14 flex items-center justify-center"
-              style={{ backgroundColor: onboardingScreens[currentScreen].buttonColor }}
+              style={{
+                backgroundColor: onboardingScreens[currentScreen].buttonColor,
+              }}
             >
               <img src="/arrow.png" alt="Next" className="w-8 h-8 text-white" />
             </button>
@@ -90,7 +99,11 @@ const Onboarding = () => {
               to="/signin"
               className="rounded-xl w-14 h-14 flex items-center justify-center bg-[#023324] text-white"
             >
-              <img src="/arrow.png" alt="Get Started" className="w-8 h-8 text-white" />
+              <img
+                src="/arrow.png"
+                alt="Get Started"
+                className="w-8 h-8 text-white"
+              />
             </Link>
           )}
         </div>
