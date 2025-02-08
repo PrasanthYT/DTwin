@@ -3,62 +3,161 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, MoreHorizontal, Play, CheckCircle, Heart, MessageCircle, Eye, Bookmark } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import axios from 'axios';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const apiKey = "AIzaSyDJH8fXrHqeWcN7zqhye1-s6WJqt2AEKaY"; // Replace with your actual API key
+const genAI = new GoogleGenerativeAI(apiKey);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  systemInstruction:`System Instruction for AI Wellness Data Processing
+Objective:
+The AI should analyze user data related to physical fitness, nutrition, and mental wellness, then provide structured recommendations for improvement in a predefined JSON format.
+
+Input Format:
+The AI will receive JSON input containing various wellness parameters such as:
+
+Physical Fitness: Step count, calories burned, heart rate, weight, height, active time, workout details.
+Nutrition: Daily intake values, macronutrient distribution, hydration levels, micronutrient status.
+Mental Wellness: Sleep data, stress levels, mindfulness activities, mood tracking.
+Output Format:
+The AI must return:
+
+Key Metrics Summary: A structured list of wellness-related metrics with icons, color coding, and units.
+Five Steps for Improvement: Actionable, personalized suggestions based on the input data.
+Analysis & Insights: A summary explaining key observations and areas for improvement.
+Processing Rules:
+Identify Patterns: The AI should detect trends from user data and suggest improvements accordingly.
+Personalized Insights: Recommendations should be tailored based on user-specific metrics.
+Holistic Approach: Ensure balance across physical fitness, nutrition, and mental wellness.
+JSON Structure Compliance: The AI must return responses in the correct format.
+Example Response Structure:
+json
+Copy
+Edit
+{
+  "fitnessMetrics": [
+    {
+      "title": "Metric 1",
+      "amount": "Value 1",
+      "icon": "related emoji 1😊",
+      "color": "Color 1",
+      "textColor": "random TextColor 1",
+      "unit": "Unit 1"
+    },
+    {
+      "title": "Metric 2",
+      "amount": "Value 2",
+      "icon": "related emoji 😊2",
+      "color": "Color 2",
+      "textColor": "random TextColor 2",
+      "unit": "Unit 2"
+    },
+    {
+      "title": "Metric 3",
+      "amount": "Value 3",
+      "icon": "related emoji 😊3",
+      "color": "Color 3",
+      "textColor": "random TextColor 3",
+      "unit": "Unit 3"
+    }
+  ],
+  "improvementSteps": [
+    {
+      "id": 1,
+      "activity": "Step 1",
+      "text": "Description of step 1 way to solve",
+      "completed": false,
+      "duration": "Duration 1",
+      "target": "Target 1 (2 - 3 words)"
+    },
+    {
+      "id": 2,
+      "activity": "Step 2",
+      "text": "Description of step 2 way to solve",
+      "completed": false,
+      "duration": "Duration 2",
+      "target": "Target 2 (2 - 3 words)"
+    },
+    {
+      "id": 3,
+      "activity": "Step 3",
+      "text": "Description of step 3 way to solve",
+      "completed": false,
+      "duration": "Duration 3",
+      "target": "Target 3 (2 - 3 words)"
+    },
+    {
+      "id": 4,
+      "activity": "Step 4",
+      "text": "Description of step 4 way to solve",
+      "completed": false,
+      "duration": "Duration 4",
+      "target": "Target 4 (2 - 3 words)"
+    },
+    {
+      "id": 5,
+      "activity": "Step 5",
+      "text": "Description of step 5 way to solve",
+      "completed": false,
+      "duration": "Duration 5",
+      "target": "Target 5 (2 - 3 words)"
+    }
+  ],
+  "analysis": "Summary of observations and areas for improvement."
+}
+Integration Guidelines:
+AI should retrieve actual user data and process it accordingly.
+Context-aware recommendations should be generated based on user-specific input.
+Strict adherence to JSON format is required for seamless data processing`,
+});
 
 const MindWellnessPage = () => {
+   const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [nutritionMetrics, setNutritionMetrics] = useState([]);
+  const [meals, setMeals] = useState([]);
+    const fetchHealthScore = async () => {
+      setLoading(true);
+      setError("");
+  
+      const healthInput = {
+        sleep: "7 hours",
+        bpm: "100",
+        age: "20",
+        gender: "male",
+        avg_heart_rate: "100"
+      };
+  
+      try {
+        const chatSession = model.startChat({
+          generationConfig: {
+            temperature: 0.15,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          },
+          history: [],
+        });
+        const result = await chatSession.sendMessage(JSON.stringify(healthInput));
+        let responseText = result.response.text();
+        responseText = responseText.replace(/```json|```/g, "").trim()
+        const aiResponse = JSON.parse(responseText);
+  
+        setWellnessMetrics(aiResponse.fitnessMetrics  || []);
+        setSteps(aiResponse.improvementSteps || []);
+        console.log(aiResponse.improvementSteps)
+      } catch (err) {
+        console.error("Error fetching health AI data:", err);
+        setError("Failed to fetch AI recommendations.");
+      }
+  
+      setLoading(false);
+    };
   const [steps, setSteps] = useState([
-    {
-      id: 1,
-      step: "Morning Meditation",
-      text: "Start your day with 10 minutes of mindful breathing and positive affirmations",
-      completed: false,
-      duration: "10 min",
-    },
-    {
-      id: 2,
-      step: "Journaling",
-      text: "Write down your thoughts, feelings, and intentions for the day",
-      completed: false,
-      duration: "15 min",
-    },
-    {
-      id: 3,
-      step: "Mindful Movement",
-      text: "Gentle yoga or stretching to connect body and mind",
-      completed: false,
-      duration: "20 min",
-    },
-    {
-      id: 4,
-      step: "Evening Reflection",
-      text: "Practice gratitude and review your daily achievements",
-      completed: false,
-      duration: "10 min",
-    },
   ]);
 
-  const wellnessMetrics = [
-    {
-      title: "Mindfulness",
-      amount: "30min",
-      icon: "🧘‍♀️",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-    {
-      title: "Focus",
-      amount: "45min",
-      icon: "🎯",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-    {
-      title: "Relaxation",
-      amount: "25min",
-      icon: "🌿",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-  ];
+  const [wellnessMetrics,setWellnessMetrics] = useState([
+  ]);
   const [video, setVideo] = useState(null);
   const [stats, setStats] = useState({ views: 0, likes: 0, comments: 0 });
 
@@ -105,7 +204,7 @@ const MindWellnessPage = () => {
         console.error("Error fetching video stats: ", error);
       }
     };
-  
+    fetchHealthScore()
     fetchVideo();
   }, []);
   const [videoData, setVideoData] = useState({
@@ -268,11 +367,14 @@ const MindWellnessPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900">
-                      {item.step}
+                      {item.activity}
                     </h3>
                     <span className="text-sm text-gray-500">
                       {item.duration}
                     </span>
+                    <span className="text-sm text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">
+                        {item.target}
+                      </span>
                   </div>
                   {item.completed && (
                     <span className="text-sm text-cyan-600 font-medium bg-cyan-50 px-3 py-1 rounded-full">

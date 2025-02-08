@@ -91,6 +91,8 @@ const Chatbot = () => {
 
         let words = botResponse.split(" ");
         let typedMessage = "";
+        setMessages((prev) => [...prev, { role: "bot", content: "", audioFile }]);
+        setIsTyping(false);
         for (let i = 0; i < words.length; i++) {
           await new Promise((resolve) => setTimeout(resolve, 50));
           typedMessage += words[i] + " ";
@@ -114,7 +116,7 @@ const Chatbot = () => {
 
   const generateSpeech = async (text) => {
     try {
-      const response = await fetch("http://localhost:3000/api/speech/generate", {
+      const response = await fetch("http://localhost:4200/api/speech/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
