@@ -131,7 +131,6 @@ const WorkoutActivityPage = () => {
       steps: 10000,
       active_minutes: 60,
       calories_burnt: 500,
-      steps: 2000,
       avg_heartRate: 75,
       description: "Suggest a personalized workout plan based on progress and fitness level"
     };
