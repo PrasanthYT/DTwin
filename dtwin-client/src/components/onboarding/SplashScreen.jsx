@@ -7,7 +7,7 @@ const SplashScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#C9E8E3] z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('/pattern.png')] bg-cover opacity-20"></div>
 
