@@ -134,8 +134,7 @@ const HealthDashboard = () => {
 
   // ✅ Extract Active Minutes (Fairly + Very Active Minutes)
   const recentActiveMinutes =
-    (recentActivityData?.activity?.summary?.fairlyActiveMinutes || 0) +
-    (recentActivityData?.activity?.summary?.veryActiveMinutes || 0);
+    recentActivityData?.activity?.summary?.lightlyActiveMinutes || 0;
 
   // ✅ Extract Total Distance (if needed)
   const totalDistance =
@@ -156,6 +155,8 @@ const HealthDashboard = () => {
   // ** Handle Navigation **
   const handleWellnessAI = () => navigate("/wellnessai");
   const handleSearchBar = () => navigate("/search");
+
+  const handleHeartRate = () => navigate("/heartratemonitor");
 
   return (
     // Added overflow-x-hidden to prevent horizontal scroll
@@ -260,7 +261,7 @@ const HealthDashboard = () => {
               </Button>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <Card className="bg-blue-500 text-white border-0 p-3">
+              <Card onClick={handleHeartRate} className="bg-blue-500 text-white border-0 p-3">
                 <h3 className="text-sm">Heart Rate</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-bold">

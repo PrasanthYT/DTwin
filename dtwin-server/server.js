@@ -6,13 +6,9 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const foodRoute = require("./routes/foodRoute");
 const authRoutes = require("./routes/auth");
-<<<<<<< Updated upstream
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
 const fitbit = require("./routes/fitbitRoute");
-=======
-const foodLogRoute = require('./routes/foodLogRoute')
->>>>>>> Stashed changes
+const foodLogRoute = require("./routes/foodLogRoute");
 
 const app = express();
 
@@ -23,11 +19,8 @@ app.use(bodyParser.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoute);
-<<<<<<< Updated upstream
 app.use("/api/fitbit", fitbit);
-=======
 app.use("/api/foodlog", foodLogRoute);
->>>>>>> Stashed changes
 app.post("/api/speech/generate", async (req, res) => {
   try {
     const data = req.body;
@@ -116,13 +109,9 @@ app.post("/api/identify-food", async (req, res) => {
 
 app.post("/api/");
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
-const FITBIT_CLIENT_ID = '23Q6D5';
-const FITBIT_CLIENT_SECRET = 'd1e772601b8a9473f3717b6f2cfb307e';
-const REDIRECT_URI = 'http://localhost:5173/Fitbit';
+const FITBIT_CLIENT_ID = "23Q6D5";
+const FITBIT_CLIENT_SECRET = "d1e772601b8a9473f3717b6f2cfb307e";
+const REDIRECT_URI = "http://localhost:5173/Fitbit";
 
 // Helper function to get date string for n days ago
 const getDateString = (daysAgo) => {
@@ -278,8 +267,7 @@ app.get("/fitbit-data", async (req, res) => {
   }
 });
 
-const apiKey = "AIzaSyDo-YvanSAVyvuEZ7jwQpLoPG9NNwQOCSc"
-;
+const apiKey = "AIzaSyDo-YvanSAVyvuEZ7jwQpLoPG9NNwQOCSc";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
@@ -395,7 +383,7 @@ const generationConfig = {
 };
 
 app.post("/api/health-ai", async (req, res) => {
-  console.log("hiiiii")
+  console.log("hiiiii");
   try {
     const userInput = req.body.input;
     if (!userInput) {
@@ -409,7 +397,6 @@ app.post("/api/health-ai", async (req, res) => {
 
     const result = await chatSession.sendMessage(userInput);
     res.json({ response: result.response.text() });
-
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to process request." });

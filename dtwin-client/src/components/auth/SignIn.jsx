@@ -34,7 +34,7 @@ export default function SignIn() {
       toast.success("Login successful!");
       
       // Save token or user info in localStorage/sessionStorage if needed
-      localStorage.setItem("token", data.token);
+      sessionStorage.setItem("token", data.token);
 
       setEmail("");
       setPassword("");
