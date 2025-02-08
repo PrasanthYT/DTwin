@@ -6,9 +6,13 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const foodRoute = require("./routes/foodRoute");
 const authRoutes = require("./routes/auth");
+<<<<<<< Updated upstream
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const fitbit = require("./routes/fitbitRoute");
+=======
+const foodLogRoute = require('./routes/foodLogRoute')
+>>>>>>> Stashed changes
 
 const app = express();
 
@@ -19,7 +23,11 @@ app.use(bodyParser.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoute);
+<<<<<<< Updated upstream
 app.use("/api/fitbit", fitbit);
+=======
+app.use("/api/foodlog", foodLogRoute);
+>>>>>>> Stashed changes
 app.post("/api/speech/generate", async (req, res) => {
   try {
     const data = req.body;
@@ -108,6 +116,10 @@ app.post("/api/identify-food", async (req, res) => {
 
 app.post("/api/");
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 const FITBIT_CLIENT_ID = '23Q6D5';
 const FITBIT_CLIENT_SECRET = 'd1e772601b8a9473f3717b6f2cfb307e';
 const REDIRECT_URI = 'http://localhost:5173/Fitbit';

@@ -19,6 +19,7 @@ import HealthText from "./components/onboarding/health-text";
 import Onboarding from "./components/onboarding/LandingPage";
 import StartingPage from "./components/onboarding/StartingPage";
 import Fitbit from "./components/Fitbit/Fitbit";
+import FoodScanner from "./components/ai/Foodscanner";
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/wellnessresourcepage" element={<WellnessResourcePage />}/>
         <Route path="/nutritionguidancepage" element={<NutritionGuidancePage />}/>
         <Route path="/Fitbit" element={<Fitbit/>}/>
+        <Route path='foodscan' element={<FoodScanner/>}/>
       </Routes>
     </Router>
   );
