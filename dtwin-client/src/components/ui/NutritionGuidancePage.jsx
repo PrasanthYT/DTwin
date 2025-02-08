@@ -1,15 +1,7 @@
-import React, { useState } from "react";
-import {
-  ArrowLeft,
-  MoreHorizontal,
-  Apple,
-  CheckCircle,
-  Scale,
-  Utensils,
-  BookOpen,
-  Timer,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import  { useEffect, useState } from 'react';
+import { ArrowLeft, MoreHorizontal, Apple, CheckCircle, Scale, Utensils, BookOpen, Timer, Heart, Eye, MessageCircle, Bookmark } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import axios from 'axios';
 import { Link } from "react-router-dom";
 
 const NutritionGuidancePage = () => {
@@ -83,6 +75,65 @@ const NutritionGuidancePage = () => {
     },
   ];
 
+  // const [recipeData, setRecipeData] = useState({
+  //   id: 'healthy-recipe',
+  //   title: 'Mediterranean Buddha Bowl',
+  //   description: 'A nutrient-rich bowl packed with quinoa, chickpeas, fresh vegetables, and tahini dressing',
+  //   stats: {
+  //     calories: 450,
+  //     prepTime: '20 min',
+  //     difficulty: 'Easy'
+  //   }
+  // });
+  const [video, setVideo] = useState(null);
+  const [stats, setStats] = useState({ views: 0, likes: 0, comments: 0 });
+
+  useEffect(() => {
+    const fetchVideo = async () => {
+      try {
+        const apiKey = "AIzaSyAlWKtULV4WwNejHBirIT5OodY_QZlSn9g"; // Replace with your YouTube API Key
+        const response = await axios.get(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&q=nutrition+guide&type=video&maxResults=1&key=${apiKey}`
+        );
+        if (response.data.items.length > 0) {
+          const videoData = response.data.items[0];
+          setVideo(videoData);
+          fetchVideoStats(videoData.id.videoId);
+        }
+      } catch (error) {
+        console.error("Error fetching video: ", error);
+      }
+    };
+
+    const formatNumber = (num) => {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "K";
+      }
+      return num;
+    };
+  
+    const fetchVideoStats = async (videoId) => {
+      try {
+        const response = await axios.get(
+          `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=AIzaSyAlWKtULV4WwNejHBirIT5OodY_QZlSn9g`
+        );
+        if (response.data.items.length > 0) {
+          const statsData = response.data.items[0].statistics;
+          setStats({
+            views: formatNumber(parseInt(statsData.viewCount, 10)),
+            likes: formatNumber(parseInt(statsData.likeCount, 10)),
+            comments: formatNumber(parseInt(statsData.commentCount, 10)),
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching video stats: ", error);
+      }
+    };
+  
+    fetchVideo();
+  }, []);
   const [recipeData, setRecipeData] = useState({
     id: "healthy-recipe",
     title: "Mediterranean Buddha Bowl",
@@ -264,6 +315,44 @@ const NutritionGuidancePage = () => {
       </div>
 
       {/* Featured Recipe Section */}
+      <div className="p-4 md:p-6 ">
+             <div className="rounded-xl overflow-hidden shadow-lg bg-white">
+            {video && 
+             <div className="relative">
+             <iframe
+               className="w-full h-48 rounded-lg"
+               src={`https://www.youtube.com/embed/${video.id.videoId}`}
+               title="Nutrition Guide"
+               allowFullScreen
+             ></iframe>
+           </div>
+            }
+               <div className="p-4">
+                 <h3 className="text-lg font-semibold text-gray-900">{video ? video.snippet.title : ""}</h3>
+                 <p className="text-gray-600 mt-1">{video ? video.snippet.description : ""}</p>
+                 <div className="flex items-center justify-between mt-4 text-sm">
+                   <div className="flex space-x-6">
+                     <span className="flex items-center space-x-2 text-gray-600">
+                       <Eye className="w-4 h-4" />
+                       <span>{stats.views.toLocaleString()}</span>
+                     </span>
+                     <span className="flex items-center space-x-2 text-gray-600">
+                       <Heart className="w-4 h-4" />
+                       <span>{stats.likes.toLocaleString()}</span>
+                     </span>
+                     <span className="flex items-center space-x-2 text-gray-600">
+                       <MessageCircle className="w-4 h-4" />
+                       <span>{stats.comments.toLocaleString()}</span>
+                     </span>
+                   </div>
+                   <button className="flex items-center space-x-2 text-cyan-600 font-medium hover:text-cyan-700">
+                     <Bookmark className="w-4 h-4" />
+                     <span>Save</span>
+                   </button>
+                 </div>
+               </div>
+             </div>
+             </div>
       <div className="p-4 md:p-6">
         <h2 className="text-xl font-bold mb-4">Featured Recipe</h2>
         <div className="rounded-xl overflow-hidden shadow-lg bg-white">
