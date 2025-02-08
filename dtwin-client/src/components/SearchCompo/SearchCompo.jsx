@@ -78,13 +78,15 @@ export default function SearchBox() {
     navigate("/searchResults", { state: { ...food } });
   };
   
-  
+  const handleback = () => {
+    navigate(-1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-blue-600 p-4 rounded-b-3xl mb-4">
         <header className="sticky top-0 right-0 z-10 bg-blue-600 text-white py-2.5 flex items-center justify-start gap-3 w-full">
-          <ChevronLeft className="w-10 h-8" />
+          <ChevronLeft onClick={handleback} className="w-10 h-8" />
           <h1 className="text-[1.5rem] font-semibold">Search</h1>
         </header>
         <div className="relative mt-1">

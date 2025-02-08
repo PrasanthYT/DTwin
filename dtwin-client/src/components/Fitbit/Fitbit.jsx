@@ -33,7 +33,7 @@ function Fitbit() {
   const handleAuth = async () => {
     setError(null);
     try {
-      const response = await axios.get("http://localhost:5000/auth");
+      const response = await axios.get("http://localhost:4200/auth");
       window.location.href = response.data.authUrl;
     } catch (error) {
       setError(
@@ -47,7 +47,7 @@ function Fitbit() {
     setError(null);
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/token", {
+      const response = await axios.post("http://localhost:4200/token", {
         code,
       });
       const { access_token } = response.data;
@@ -69,7 +69,7 @@ function Fitbit() {
     try {
       const token = sessionStorage.getItem("token");
   
-      const response = await fetch("http://localhost:5000/api/fitbit/save", {
+      const response = await fetch("http://localhost:4200/api/fitbit/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +95,7 @@ function Fitbit() {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/fitbit-data?token=${token}`
+        `http://localhost:4200/fitbit-data?token=${token}`
       );
       setFitbitData(response.data);
       console.log("Fitbit data:", response.data);

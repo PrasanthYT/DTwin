@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { Line, LineChart, XAxis } from "recharts";
@@ -7,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function HealthHeartRate() {
   const [selectedRange, setSelectedRange] = useState("1 Week");
@@ -16,6 +15,8 @@ export default function HealthHeartRate() {
     "1 Month": [],
   });
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchHeartRateData();
   }, []);
@@ -24,7 +25,7 @@ export default function HealthHeartRate() {
   const fetchHeartRateData = async () => {
     try {
       const token = sessionStorage.getItem("token"); // Adjust based on auth method
-      const response = await axios.get("http://localhost:5000/api/fitbit/get", {
+      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -137,11 +138,15 @@ export default function HealthHeartRate() {
   // ✅ Get Latest Heart Rate Status
   const heartRateStatus = getHeartRateStatus(latestHeartRate);
 
+  const handleback = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen p-4">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="rounded-xl">
+          <Button onClick={handleback} variant="outline" size="icon" className="rounded-xl">
             <ArrowLeft className="h-6 w-6" />
           </Button>
           <h1 className="text-xl font-semibold">Heart Rate</h1>

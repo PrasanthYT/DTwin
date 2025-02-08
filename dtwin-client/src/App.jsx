@@ -21,6 +21,7 @@ import Fitbit from "./components/Fitbit/Fitbit";
 import FoodScanner from "./components/ai/Foodscanner";
 import HealthHeartRate from "./components/dashboard/health-heart-rate";
 import HealthBloodPressure from "./components/dashboard/health-blood-pressure";
+import HealthWeightTracking from "./components/dashboard/health-weight-tracking";
 const App = () => {
   return (
     <Router>
@@ -41,11 +42,18 @@ const App = () => {
         <Route path="/heartratemonitor" element={<HealthHeartRate />} />
         <Route path="/workoutactivitypage" element={<WorkoutActivityPage />} />
         <Route path="/mindwellnesspage" element={<MindWellnessPage />} />
-        <Route path="/wellnessresourcepage" element={<WellnessResourcePage />}/>
-        <Route path="/nutritionguidancepage" element={<NutritionGuidancePage />}/>
-        <Route path="/Fitbit" element={<Fitbit/>}/>
-        <Route path='/foodscan' element={<FoodScanner/>}/>
-        <Route path='/bloodpressure' element={<HealthBloodPressure/>}/>
+        <Route
+          path="/wellnessresourcepage"
+          element={<WellnessResourcePage />}
+        />
+        <Route
+          path="/nutritionguidancepage"
+          element={<NutritionGuidancePage />}
+        />
+        <Route path="/Fitbit" element={<Fitbit />} />
+        <Route path="/foodscan" element={<FoodScanner />} />
+        <Route path="/bloodpressure" element={<HealthBloodPressure />} />
+        <Route path="/weighttrack" element={<HealthWeightTracking />} />
       </Routes>
     </Router>
   );

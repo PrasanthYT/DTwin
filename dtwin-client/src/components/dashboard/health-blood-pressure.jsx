@@ -143,7 +143,7 @@ export default function HealthBloodPressure() {
           <Button variant="ghost" size="icon" className="rounded-xl bg-white">
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-semibold">Blood Pressure Stats</h1>
+          <h1 className="text-xl font-semibold">Blood Sugar Stats</h1>
         </div>
         <Button variant="ghost" size="icon">
           <MoreHorizontal className="h-6 w-6" />
