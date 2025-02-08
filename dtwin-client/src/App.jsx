@@ -20,7 +20,7 @@ import StartingPage from "./components/onboarding/StartingPage";
 import Fitbit from "./components/Fitbit/Fitbit";
 import FoodScanner from "./components/ai/Foodscanner";
 import HealthHeartRate from "./components/dashboard/health-heart-rate";
-
+import HealthBloodPressure from "./components/dashboard/health-blood-pressure";
 const App = () => {
   return (
     <Router>
@@ -45,6 +45,7 @@ const App = () => {
         <Route path="/nutritionguidancepage" element={<NutritionGuidancePage />}/>
         <Route path="/Fitbit" element={<Fitbit/>}/>
         <Route path='/foodscan' element={<FoodScanner/>}/>
+        <Route path='/bloodpressure' element={<HealthBloodPressure/>}/>
       </Routes>
     </Router>
   );

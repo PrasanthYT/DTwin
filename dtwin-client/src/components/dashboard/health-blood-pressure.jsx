@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  MoreHorizontal,
-  Heart,
-  Activity,
-  BabyIcon as Kidney,
-  Bone,
-} from "lucide-react";
+import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { FaHeart, FaRunning } from 'react-icons/fa'; // Import Font Awesome icons
+import { GiKidneys } from "react-icons/gi";
+import { LuBone } from "react-icons/lu";
 
 const apiKey = "AIzaSyBpu2KDNWOqG_qzzVLqNfzrZ7SH-KYGvFY";
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -47,7 +43,7 @@ export default function HealthBloodPressure() {
         generationConfig: {
           temperature: 0.6,
           maxOutputTokens: 8192,
-          responseMimeType: "text/plain",
+          responseMimeType: "application/json",
         },
         history: [],
       });
@@ -56,7 +52,7 @@ export default function HealthBloodPressure() {
 
       ${JSON.stringify(healthReport)}
 
-      Please provide the response as a JSON array in the following format:
+      Please provide the response as a strictly valid JSON array in the following format:
 
       [
         {
@@ -81,15 +77,24 @@ export default function HealthBloodPressure() {
 
       const result = await chatSession.sendMessage(caseStudyPrompt);
       const aiData = await result.response.text();
+      console.log("AI Response:", aiData);
+
       try {
         const parsedRisks = JSON.parse(aiData);
         if (!Array.isArray(parsedRisks)) {
           throw new Error("Invalid AI response format");
         }
+        const iconMap = {
+          // Map your icon strings to the actual components
+          Heart: FaHeart,
+          Kidney: GiKidneys,
+          Activity: FaRunning, // Or choose a more appropriate activity icon
+          Bone: LuBone,
+        };
 
         const updatedRisks = parsedRisks.map((risk) => ({
           ...risk,
-          icon: { Heart, Kidney, Activity, Bone }[risk.icon] || Heart,
+          icon: iconMap[risk.icon] || FaHeart, // Use the map, default to Heart if not found
         }));
 
         setDiseaseRisks(updatedRisks);
@@ -110,7 +115,7 @@ export default function HealthBloodPressure() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("Token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
       });
 
@@ -120,7 +125,7 @@ export default function HealthBloodPressure() {
 
       const data = await response.json();
       const healthReport = data.user.userDetails.healthReport;
-      // Call AI with health report
+      console.log("Health Report:", healthReport);
       await fetchHealthRisksFromAI(healthReport);
     } catch (err) {
       setError(err.message);
@@ -229,7 +234,8 @@ export default function HealthBloodPressure() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl ${risk.bgColor}`}>
-                      <risk.icon className={`h-6 w-6 ${risk.color}`} />
+                      <risk.icon className={`h-6 w-6 ${risk.color}`} />{" "}
+                      {/* Use the component */}
                     </div>
                     <div>
                       <h3 className="font-semibold">{risk.name}</h3>

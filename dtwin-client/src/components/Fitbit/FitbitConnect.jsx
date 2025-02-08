@@ -18,7 +18,7 @@ const FitbitConnect = () => {
   const handleConnect = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/auth");
+      const response = await axios.get("http://localhost:4200/auth");
       window.location.href = response.data.authUrl;
     } catch (error) {
       console.error("❌ Fitbit Connection Error:", error);
@@ -37,11 +37,11 @@ const FitbitConnect = () => {
 
       // Fetch Fitbit Data
       const response = await axios.get(
-        `http://localhost:5000/fitbit-data?token=${token}`
+        `http://localhost:4200/fitbit-data?token=${token}`
       );
 
       // Save Fitbit Data to Backend
-      await axios.post("http://localhost:5000/api/fitbit/save", response.data, {
+      await axios.post("http://localhost:4200/api/fitbit/save", response.data, {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("token")}`,
           "Content-Type": "application/json",

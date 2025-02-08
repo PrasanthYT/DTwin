@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import HealthGenders from "../components/onboarding/health-gender";
-import { useEffect, useState } from "react";
 import HealthGoals from "../components/onboarding/health-goal";
 import HealthWeight from "../components/onboarding/health-weight";
 import HealthAge from "../components/onboarding/health-age";
