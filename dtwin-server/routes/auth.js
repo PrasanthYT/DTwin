@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, googleAuth, googleCallback, getFitData, updateUserData, googleSignup, updateAvatar, storeHealthScore, getUser } = require("../controllers/authController");
+const { register, login, googleAuth, googleCallback, getFitData, updateUserData, googleSignup, updateAvatar, storeHealthScore, getUser, updateUserMedications, removeUserMedication, updateUserProfile } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
@@ -16,5 +16,8 @@ router.post("/user-data", authMiddleware, updateUserData);
 router.post("/user-avatar", authMiddleware, updateAvatar);
 router.post("/user-health-score", authMiddleware, storeHealthScore);
 router.get("/user", authMiddleware, getUser);
+router.post("/update-medications", authMiddleware, updateUserMedications);
+router.post("/remove-medication", authMiddleware, removeUserMedication);
+router.put("/update-profile", authMiddleware, updateUserProfile);
 
 module.exports = router;

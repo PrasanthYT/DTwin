@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 function Fitbit() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,7 +36,9 @@ function Fitbit() {
       const response = await axios.get("http://localhost:4200/auth");
       window.location.href = response.data.authUrl;
     } catch (error) {
-      setError(error.response?.data?.error || "Error initiating authentication");
+      setError(
+        error.response?.data?.error || "Error initiating authentication"
+      );
       console.error("Auth error:", error);
     }
   };
@@ -36,31 +47,67 @@ function Fitbit() {
     setError(null);
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:4200/token", { code });
+      const response = await axios.post("http://localhost:4200/token", {
+        code,
+      });
       const { access_token } = response.data;
       localStorage.setItem("fitbitToken", access_token);
       setIsAuthenticated(true);
       await fetchFitbitData(access_token);
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
-      setError(error.response?.data?.error || "Error exchanging code for token");
+      setError(
+        error.response?.data?.error || "Error exchanging code for token"
+      );
       console.error("Token exchange error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const submitFitbitData = async (fitbitData) => {
+    try {
+      const token = sessionStorage.getItem("token");
+  
+      const response = await fetch("http://localhost:4200/api/fitbit/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(fitbitData),
+      });
+  
+      if (response.ok) {
+        console.log("✅ Fitbit data saved successfully");
+      } else {
+        console.error("❌ Failed to save Fitbit data:", response.status);
+      }
+    } catch (error) {
+      console.error("❌ Error submitting Fitbit data:", error);
+    }
+  };
+
+  // ✅ Fetch Fitbit Data and Save It
   const fetchFitbitData = async (token) => {
     setError(null);
     setIsLoading(true);
+
     try {
-      const response = await axios.get(`http://localhost:4200/fitbit-data?token=${token}`);
+      const response = await axios.get(
+        `http://localhost:4200/fitbit-data?token=${token}`
+      );
       setFitbitData(response.data);
+      console.log("Fitbit data:", response.data);
+
+      // ✅ Save to Backend
+      await submitFitbitData(response.data);
     } catch (error) {
-      const errorMessage = error.response?.data?.error || "Error fetching Fitbit data";
+      const errorMessage =
+        error.response?.data?.error || "Error fetching Fitbit data";
       setError(errorMessage);
-      console.error("Data fetch error:", error);
-      
+      console.error("❌ Data fetch error:", error);
+
       if (error.response?.status === 401) {
         localStorage.removeItem("fitbitToken");
         setIsAuthenticated(false);
@@ -77,26 +124,24 @@ function Fitbit() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
     });
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Fitbit Weekly Dashboard</h1>
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
-      {isLoading && (
-        <div className="text-gray-600 mb-4">Loading...</div>
-      )}
+      {isLoading && <div className="text-gray-600 mb-4">Loading...</div>}
 
       {!isAuthenticated ? (
         <button
@@ -134,7 +179,12 @@ function Fitbit() {
                       <YAxis />
                       <Tooltip labelFormatter={formatDate} />
                       <Legend />
-                      <Line type="monotone" dataKey="activity.summary.steps" name="Steps" stroke="#8884d8" />
+                      <Line
+                        type="monotone"
+                        dataKey="activity.summary.steps"
+                        name="Steps"
+                        stroke="#8884d8"
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -154,11 +204,11 @@ function Fitbit() {
                       <YAxis />
                       <Tooltip labelFormatter={formatDate} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="sleep.minutesAsleep" 
-                        name="Sleep (minutes)" 
-                        stroke="#82ca9d" 
+                      <Line
+                        type="monotone"
+                        dataKey="sleep.minutesAsleep"
+                        name="Sleep (minutes)"
+                        stroke="#82ca9d"
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -179,11 +229,11 @@ function Fitbit() {
                       <YAxis />
                       <Tooltip labelFormatter={formatDate} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="heartRate.activities-heart[0].value.restingHeartRate" 
-                        name="Resting Heart Rate" 
-                        stroke="#ff7300" 
+                      <Line
+                        type="monotone"
+                        dataKey="heartRate.activities-heart[0].value.restingHeartRate"
+                        name="Resting Heart Rate"
+                        stroke="#ff7300"
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -198,8 +248,13 @@ function Fitbit() {
                     <div className="space-y-2 text-sm">
                       <p>Steps: {day.activity.summary.steps}</p>
                       <p>Calories: {day.activity.summary.caloriesOut}</p>
-                      <p>Sleep: {day.sleep?.minutesAsleep || 'N/A'} min</p>
-                      <p>Heart Rate: {day.heartRate['activities-heart'][0].value.restingHeartRate || 'N/A'} bpm</p>
+                      <p>Sleep: {day.sleep?.minutesAsleep || "N/A"} min</p>
+                      <p>
+                        Heart Rate:{" "}
+                        {day.heartRate["activities-heart"][0].value
+                          .restingHeartRate || "N/A"}{" "}
+                        bpm
+                      </p>
                     </div>
                   </div>
                 ))}

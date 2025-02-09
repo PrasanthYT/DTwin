@@ -1,83 +1,303 @@
-import React, { useState } from "react";
-import {
-  ArrowLeft,
-  MoreHorizontal,
-  Play,
-  CheckCircle,
-  Heart,
-  MessageCircle,
-  Eye,
-  Bookmark,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, MoreHorizontal, Play, CheckCircle, Heart, MessageCircle, Eye, Bookmark } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import axios from 'axios';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const apiKey = "AIzaSyDJH8fXrHqeWcN7zqhye1-s6WJqt2AEKaY"; // Replace with your actual API key
+const genAI = new GoogleGenerativeAI(apiKey);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  systemInstruction:`System Instruction for AI Wellness Data Processing
+Objective:
+The AI should analyze user data related to physical fitness, nutrition, and mental wellness, then provide structured recommendations for improvement in a predefined JSON format.
+
+Input Format:
+The AI will receive JSON input containing various wellness parameters such as:
+
+Physical Fitness: Step count, calories burned, heart rate, weight, height, active time, workout details.
+Nutrition: Daily intake values, macronutrient distribution, hydration levels, micronutrient status.
+Mental Wellness: Sleep data, stress levels, mindfulness activities, mood tracking.
+Output Format:
+The AI must return:
+
+Key Metrics Summary: A structured list of wellness-related metrics with icons, color coding, and units.
+Five Steps for Improvement: Actionable, personalized suggestions based on the input data.
+Analysis & Insights: A summary explaining key observations and areas for improvement.
+Processing Rules:
+Identify Patterns: The AI should detect trends from user data and suggest improvements accordingly.
+Personalized Insights: Recommendations should be tailored based on user-specific metrics.
+Holistic Approach: Ensure balance across physical fitness, nutrition, and mental wellness.
+JSON Structure Compliance: The AI must return responses in the correct format.
+Example Response Structure:
+json
+Copy
+Edit
+{
+  "fitnessMetrics": [
+    {
+      "title": "Metric 1",
+      "amount": "Value 1",
+      "icon": "related emoji 1😊",
+      "color": "Color 1",
+      "textColor": "random TextColor 1",
+      "unit": "Unit 1"
+    },
+    {
+      "title": "Metric 2",
+      "amount": "Value 2",
+      "icon": "related emoji 😊2",
+      "color": "Color 2",
+      "textColor": "random TextColor 2",
+      "unit": "Unit 2"
+    },
+    {
+      "title": "Metric 3",
+      "amount": "Value 3",
+      "icon": "related emoji 😊3",
+      "color": "Color 3",
+      "textColor": "random TextColor 3",
+      "unit": "Unit 3"
+    }
+  ],
+  "improvementSteps": [
+    {
+      "id": 1,
+      "activity": "Step 1",
+      "text": "Description of step 1 way to solve",
+      "completed": false,
+      "duration": "Duration 1",
+      "target": "Target 1 (2 - 3 words)"
+    },
+    {
+      "id": 2,
+      "activity": "Step 2",
+      "text": "Description of step 2 way to solve",
+      "completed": false,
+      "duration": "Duration 2",
+      "target": "Target 2 (2 - 3 words)"
+    },
+    {
+      "id": 3,
+      "activity": "Step 3",
+      "text": "Description of step 3 way to solve",
+      "completed": false,
+      "duration": "Duration 3",
+      "target": "Target 3 (2 - 3 words)"
+    },
+    {
+      "id": 4,
+      "activity": "Step 4",
+      "text": "Description of step 4 way to solve",
+      "completed": false,
+      "duration": "Duration 4",
+      "target": "Target 4 (2 - 3 words)"
+    },
+    {
+      "id": 5,
+      "activity": "Step 5",
+      "text": "Description of step 5 way to solve",
+      "completed": false,
+      "duration": "Duration 5",
+      "target": "Target 5 (2 - 3 words)"
+    }
+  ],
+  "analysis": "Summary of observations and areas for improvement."
+}
+Integration Guidelines:
+AI should retrieve actual user data and process it accordingly.
+Context-aware recommendations should be generated based on user-specific input.
+Strict adherence to JSON format is required for seamless data processing`,
+});
+
+const MetricsLoadingSkeleton = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 mt-3 md:grid-cols-3 gap-4">
+    {[1, 2, 3].map((i) => (
+      <Card key={i} className="overflow-hidden">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+const StepsLoadingSkeleton = () => (
+  <div className="space-y-8 mt-8">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div key={i} className="flex items-start space-x-4">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="flex-1">
+          <div className="bg-white p-4 rounded-xl">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 
 const MindWellnessPage = () => {
+   const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [nutritionMetrics, setNutritionMetrics] = useState([]);
+    const [userData, setUserData] = useState([]);
+    const [fitbitData, setFitbitData] = useState([]);
+  const [meals, setMeals] = useState([]);
+    const fetchHealthScore = async () => {
+      setLoading(true);
+      setError("");
+  
+      const healthInput = {
+        sleep: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].sleep.minutesAsleep,
+        age: userData.userDetails.age,
+        gender: userData.userDetails.gender,
+        avg_heartRate: fitbitData.data.weeklyData[fitbitData.data.weeklyData.length - 1].activity.summary.restingHeartRate,
+        description: "Suggest a personalized mental wellness plan based on progress and level"
+      };
+  
+      try {
+        const chatSession = model.startChat({
+          generationConfig: {
+            temperature: 0.15,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          },
+          history: [],
+        });
+        const result = await chatSession.sendMessage(JSON.stringify(healthInput));
+        let responseText = result.response.text();
+        responseText = responseText.replace(/```json|```/g, "").trim()
+        const aiResponse = JSON.parse(responseText);
+  
+        setWellnessMetrics(aiResponse.fitnessMetrics  || []);
+        setSteps(aiResponse.improvementSteps || []);
+        console.log(aiResponse.improvementSteps)
+      } catch (err) {
+        console.error("Error fetching health AI data:", err);
+        setError("Failed to fetch AI recommendations.");
+      }
+  
+      setLoading(false);
+    };
   const [steps, setSteps] = useState([
-    {
-      id: 1,
-      step: "Morning Meditation",
-      text: "Start your day with 10 minutes of mindful breathing and positive affirmations",
-      completed: false,
-      duration: "10 min",
-    },
-    {
-      id: 2,
-      step: "Journaling",
-      text: "Write down your thoughts, feelings, and intentions for the day",
-      completed: false,
-      duration: "15 min",
-    },
-    {
-      id: 3,
-      step: "Mindful Movement",
-      text: "Gentle yoga or stretching to connect body and mind",
-      completed: false,
-      duration: "20 min",
-    },
-    {
-      id: 4,
-      step: "Evening Reflection",
-      text: "Practice gratitude and review your daily achievements",
-      completed: false,
-      duration: "10 min",
-    },
   ]);
 
-  const wellnessMetrics = [
-    {
-      title: "Mindfulness",
-      amount: "30min",
-      icon: "🧘‍♀️",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-    {
-      title: "Focus",
-      amount: "45min",
-      icon: "🎯",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-    {
-      title: "Relaxation",
-      amount: "25min",
-      icon: "🌿",
-      color: "bg-cyan-100",
-      textColor: "text-cyan-600",
-    },
-  ];
+  const [wellnessMetrics,setWellnessMetrics] = useState([
+  ]);
+  const [video, setVideo] = useState(null);
+  const [stats, setStats] = useState({ views: 0, likes: 0, comments: 0 });
 
-  const [videoData, setVideoData] = useState({
-    id: "mindfulness-vid",
-    title: "Guided Meditation for Inner Peace",
-    description: "A calming session to help you find balance and tranquility",
-    stats: {
-      views: 24680,
-      likes: 892,
-      comments: 156,
-    },
-  });
+  useEffect(() => {
+    const fetchVideo = async () => {
+      try {
+        const apiKey = "AIzaSyCVlNRgryFu9ogSwss9ZSgPSgd2oYAQM5o"; // Replace with your YouTube API Key
+        const response = await axios.get(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&q=guided+meditation+for+inner+peace&type=video&maxResults=1&key=${apiKey}`
+        );
+        if (response.data.items.length > 0) {
+          const videoData = response.data.items[0];
+          setVideo(videoData);
+          fetchVideoStats(videoData.id.videoId);
+        }
+      } catch (error) {
+        console.error("Error fetching video: ", error);
+      }
+    };
+
+    const formatNumber = (num) => {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "K";
+      }
+      return num;
+    };
+    const fetchFitbitData = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        if (response.status === 200) {
+          console.log("✅ Fitbit Data:", response.data);
+          setFitbitData(response.data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching Fitbit data:", error);
+      }
+    };
+  
+    const fetchUserData = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch("http://localhost:4200/api/auth/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          console.log("User Data:", data.user);
+          setUserData((prev) => ({
+            ...prev,
+            ...data.user,
+            healthScore: data.user.healthData?.healthScore || null, // ✅ Store healthScore
+          }));
+        } else {
+          console.error("Failed to fetch user data:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    const fetchVideoStats = async (videoId) => {
+      try {
+        const response = await axios.get(
+          `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=AIzaSyCVlNRgryFu9ogSwss9ZSgPSgd2oYAQM5o`
+        );
+        if (response.data.items.length > 0) {
+          const statsData = response.data.items[0].statistics;
+          setStats({
+            views: formatNumber(parseInt(statsData.viewCount, 10)),
+            likes: formatNumber(parseInt(statsData.likeCount, 10)),
+            comments: formatNumber(parseInt(statsData.commentCount, 10)),
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching video stats: ", error);
+      }
+    };
+    fetchFitbitData()
+    fetchUserData()
+    fetchVideo();
+  }, []);
+  useEffect(()=>{
+    fetchHealthScore(); // Fetch AI data when component mounts
+  },[fitbitData,userData])
+
 
   const toggleStep = (stepId) => {
     setSteps(
@@ -157,9 +377,10 @@ const MindWellnessPage = () => {
           </p>
         </div>
       </div>
+      {loading ? (
+          <MetricsLoadingSkeleton />
+        ) : (
 
-      {/* Rest of the component remains the same ... */}
-      {/* Metrics Section */}
       <div className="p-4 md:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Daily Progress</h2>
@@ -190,8 +411,11 @@ const MindWellnessPage = () => {
           ))}
         </div>
       </div>
-
+        )}
       {/* Steps Section */}
+      {loading ? (
+          <StepsLoadingSkeleton />
+        ) : (
       <div className="p-4 md:p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Daily Practice</h2>
@@ -228,11 +452,14 @@ const MindWellnessPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <h3 className="font-semibold text-lg text-gray-900">
-                      {item.step}
+                      {item.activity}
                     </h3>
                     <span className="text-sm text-gray-500">
                       {item.duration}
                     </span>
+                    <span className="text-sm text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">
+                        {item.target}
+                      </span>
                   </div>
                   {item.completed && (
                     <span className="text-sm text-cyan-600 font-medium bg-cyan-50 px-3 py-1 rounded-full">
@@ -246,50 +473,50 @@ const MindWellnessPage = () => {
           ))}
         </div>
       </div>
+        )}
 
       {/* Featured Content Section */}
       <div className="p-4 md:p-6">
-        <h2 className="text-xl font-bold mb-4">Featured Session</h2>
-        <div className="rounded-xl overflow-hidden shadow-lg bg-white">
-          <div className="relative aspect-video">
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoData.id}`}
-              title={videoData.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {videoData.title}
-            </h3>
-            <p className="text-gray-600 mt-1">{videoData.description}</p>
-            <div className="flex items-center justify-between mt-4 text-sm">
-              <div className="flex space-x-6">
-                <span className="flex items-center space-x-2 text-gray-600">
-                  <Eye className="w-4 h-4" />
-                  <span>{videoData.stats.views.toLocaleString()}</span>
-                </span>
-                <span className="flex items-center space-x-2 text-gray-600">
-                  <Heart className="w-4 h-4" />
-                  <span>{videoData.stats.likes.toLocaleString()}</span>
-                </span>
-                <span className="flex items-center space-x-2 text-gray-600">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{videoData.stats.comments.toLocaleString()}</span>
-                </span>
-              </div>
-              <button className="flex items-center space-x-2 text-cyan-600 font-medium hover:text-cyan-700">
-                <Bookmark className="w-4 h-4" />
-                <span>Save</span>
-              </button>
+      <h2 className="text-xl font-bold mb-4">Featured Session</h2>
+      <div className="rounded-xl overflow-hidden shadow-lg bg-white">
+     {video && 
+      <div className="relative">
+      <iframe
+        className="w-full h-48 rounded-lg"
+        src={`https://www.youtube.com/embed/${video.id.videoId}`}
+        title="Nutrition Guide"
+        allowFullScreen
+      ></iframe>
+    </div>
+     }
+        <div className="p-4">
+          <h3 className="text-lg font-semibold text-gray-900">{video ? video.snippet.title : ""}</h3>
+          <p className="text-gray-600 mt-1">{video ? video.snippet.description : ""}</p>
+          <div className="flex items-center justify-between mt-4 text-sm">
+            <div className="flex space-x-6">
+              <span className="flex items-center space-x-2 text-gray-600">
+                <Eye className="w-4 h-4" />
+                <span>{stats.views.toLocaleString()}</span>
+              </span>
+              <span className="flex items-center space-x-2 text-gray-600">
+                <Heart className="w-4 h-4" />
+                <span>{stats.likes.toLocaleString()}</span>
+              </span>
+              <span className="flex items-center space-x-2 text-gray-600">
+                <MessageCircle className="w-4 h-4" />
+                <span>{stats.comments.toLocaleString()}</span>
+              </span>
             </div>
+            <button className="flex items-center space-x-2 text-cyan-600 font-medium hover:text-cyan-700">
+              <Bookmark className="w-4 h-4" />
+              <span>Save</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default MindWellnessPage;

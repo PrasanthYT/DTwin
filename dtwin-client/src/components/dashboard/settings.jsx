@@ -1,120 +1,156 @@
-import { ArrowLeft, ArrowRight, Briefcase, Camera, LocateIcon, Eye, Mail, Phone, User } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, MailIcon, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState({
+    email: "",
+    name: "",
+    gender: "male",
+    profilePicture: "/api/placeholder/150/150",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch("http://localhost:4200/api/auth/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch user data");
+
+      const { user } = await response.json();
+      setUserData({
+        email: user.username || "",
+        name: user.name || "",
+        gender: user.gender || "male",
+        profilePicture: user.avatar || "/api/placeholder/150/150",
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:4200/api/auth/update-profile",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(userData),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update profile");
+      alert("Profile updated successfully!");
+      // Navigate back after successful update
+      navigate(-1);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    // Navigate back to previous page
+    navigate(-1);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Card className="mx-auto max-w-md rounded-none sm:rounded-lg">
-        <CardHeader className="relative h-48 overflow-hidden rounded-b-[2.5rem] bg-[#1a1f37] p-6">
+    <div className="min-h-screen bg-slate-50 relative">
+      <Card className="mx-auto max-w-md rounded-none sm:rounded-lg relative mt-2">
+        <CardHeader className="relative h-36 overflow-hidden rounded-b-[2.5rem] bg-[#1a1f37] p-6">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/20 to-transparent"></div>
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg bg-white/10">
+          <div className="relative flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-lg bg-white/10 hover:bg-white/20"
+              onClick={handleBack}
+            >
               <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
-            <h1 className="mt-2 text-xl font-semibold text-white">Profile Setup</h1>
+            <h1 className="mt-2 text-xl font-semibold text-white">
+              Profile Setup
+            </h1>
           </div>
-          <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-            <div className="relative">
-              <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-white">
-                <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-06%20165345-Rfihmxgr3nJw5B9S8Aqds6GHlHhCP0.png"
-                  alt="Profile"
-                  className="h-full w-full object-cover"
+        </CardHeader>
+
+        {/* Rest of the component remains the same */}
+        <div className="absolute left-0 right-0 -mt-14 flex justify-center">
+          <div className="relative">
+            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg">
+              <img
+                src={userData.profilePicture}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        <CardContent className="space-y-6 p-6 pt-20">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <MailIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Input
+                  id="email"
+                  name="email"
+                  value={userData.email}
+                  disabled
+                  className="pl-10 bg-gray-200 cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Input
+                  id="name"
+                  name="name"
+                  value={userData.name}
+                  onChange={(e) =>
+                    setUserData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  className="pl-10"
                 />
               </div>
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-6 p-6 pt-16">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="fullName">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input id="fullName" placeholder="Shreya" className="pl-10" />
-              </div>
-            </div>
-
-            {/* Phone Number with Country Code */}
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="flex gap-2">
-                <Select defaultValue="+81">
-                  <SelectTrigger className="w-24">
-                    <SelectValue placeholder="Code" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                    <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                    <SelectItem value="+81">🇯🇵 +81</SelectItem>
-                    <SelectItem value="+91">🇮🇳 +91</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="relative flex-1">
-                  <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <Input id="phone" placeholder="8667052857" className="pl-10" />
-                </div>
-              </div>
-            </div>
-
-            {/* Location as Input */}
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <div className="relative">
-                <LocateIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input id="location" placeholder="Chennai, Tamilnadu" className="pl-10" />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input id="email" type="email" placeholder="shreya@dtwin.com" className="pl-10" />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="jobPosition">Job Position</Label>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input id="jobPosition" placeholder="" className="pl-10" />
-              </div>
-            </div>
-
-            {/* Gender Selection */}
-            <div>
-              <Label>Gender</Label>
-              <RadioGroup defaultValue="male" className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="male" id="male" />
-                  <Label htmlFor="male">Male</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="female" id="female" />
-                  <Label htmlFor="female">Female</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="other" id="other" />
-                  <Label htmlFor="other">Other</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-
-          <Button className="w-full gap-2 bg-blue-600 py-6 text-lg font-semibold hover:bg-blue-700">
-            Continue
+          <Button
+            onClick={handleUpdateProfile}
+            className="w-full gap-2 bg-blue-600 py-6 text-lg font-semibold hover:bg-blue-700"
+          >
+            {loading ? "Updating..." : "Save"}
             <ArrowRight className="h-5 w-5" />
           </Button>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

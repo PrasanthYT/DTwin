@@ -8,36 +8,36 @@ const onboardingScreens = [
     title: "Personalize Your Health with Smart AI.",
     description: "Achieve your wellness goals with AI-powered insights.",
     image: "/secondpage.png",
-    bgColor: "#E6F5EC", // Background color for this screen
-    buttonColor: "#023324", // Button color for this screen
+    bgColor: "#FFFFFF", // Background color for this screen
+    buttonColor: "#0066FF", // Button color for this screen
   },
   {
     title: "Your Intelligent Fitness Companion.",
     description: "Track calories & fitness with AI recommendations.",
     image: "/thirdpage.png",
-    bgColor: "#E6F5EC",
-    buttonColor: "#023324",
+    bgColor: "#FFFFFF",
+    buttonColor: "#0066FF",
   },
   {
     title: "Empathic AI Wellness Chatbot For All.",
     description: "Experience compassionate AI-based care.",
     image: "/fourthpage.png",
-    bgColor: "#E6F5EC",
-    buttonColor: "#023324",
+    bgColor: "#FFFFFF",
+    buttonColor: "#0066FF",
   },
   {
     title: "Intuitive Nutrition & Med Tracker with AI.",
     description: "Easily track your medication & nutrition with AI.",
     image: "/fifthpage.png",
-    bgColor: "#E6F5EC",
-    buttonColor: "#023324",
+    bgColor: "#FFFFFF",
+    buttonColor: "#0066FF",
   },
   {
     title: "Helpful Resources & Community.",
     description: "Join a community of 5,000+ users dedicated to health.",
     image: "/sixthpage.png",
-    bgColor: "#E6F5EC",
-    buttonColor: "#023324",
+    bgColor: "#FFFFFF",
+    buttonColor: "#0066FF",
   },
 ];
 

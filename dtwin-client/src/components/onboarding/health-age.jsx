@@ -31,10 +31,6 @@ export default function AgeSelector({ nextStep, prevStep, setUserData }) {
     }
   }, [selectedAge]);
 
-  const handleScroll = () => {
-    const centerIndex = Math.round(scrollRef.current.scrollTop / 80);
-    setSelectedAge(18 + centerIndex);
-  };
 
   return (
     <div className="min-h-screen bg-white px-4">

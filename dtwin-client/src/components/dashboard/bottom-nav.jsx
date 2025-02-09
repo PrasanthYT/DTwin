@@ -10,9 +10,9 @@ const BottomNav = () => {
 
   const navItems = [
     { id: "home", icon: Home, label: "Home", path: "/dashboard" }, // First left item
-    { id: "stats", icon: BarChart2, label: "Stats", path: "/dashboard" }, // Second left item
+    { id: "stats", icon: BarChart2, label: "Stats", path: "/analytics" }, // Second left item
     { id: "food", icon: Sparkles, label: "Food", path: "/healthsuggestion" }, // First right item
-    { id: "settings", icon: Settings, label: "Settings", path: "/dashboard" } // Second right item
+    { id: "settings", icon: Settings, label: "Settings", path: "/settings" } // Second right item
   ];
 
   return (
@@ -36,7 +36,7 @@ const BottomNav = () => {
       </div>
 
       {/* Elevated Center Camera Button */}
-      <Link to="/camera">
+      <Link to="/foodscan">
         <Button
           onClick={() => setActiveTab("camera")}
           className="absolute -top-6 left-1/2 -translate-x-1/2 w-16 h-16 bg-blue-600 hover:bg-blue-700 shadow-lg rounded-full flex items-center justify-center border-4 border-white"

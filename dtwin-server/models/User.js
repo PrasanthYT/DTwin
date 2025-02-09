@@ -16,6 +16,8 @@ const UserSchema = new mongoose.Schema({
     medications: [{ name: String, category: String }],
     symptoms: [String],
     avatar: String,
+    healthInput: String,
+    healthReport: String,
   },
   healthData: {
     healthScore: Number,

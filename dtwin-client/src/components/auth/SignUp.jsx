@@ -16,7 +16,7 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword) { 
       toast.error("Passwords do not match.");
       return;
     }

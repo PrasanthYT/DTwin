@@ -1,0 +1,48 @@
+@keyframes scan-move {
+    0% {
+        transform: translateY(-20%);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(1400%);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes loader {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-4px);
+        opacity: 0.5;
+    }
+}
+
+.animate-scan-move {
+    animation: scan-move 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 2s ease-in-out infinite;
+}
+
+.animate-loader {
+    animation: loader 0.6s ease-in-out infinite;
+}

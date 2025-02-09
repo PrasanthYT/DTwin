@@ -13,7 +13,7 @@ const StartingPage = () => {
   }, [showSplash]);
 
   return (
-    <div className="h-screen flex items-center justify-center bg-[#E6F5EC] relative overflow-hidden">
+    <div className="h-screen flex items-center justify-center bg-white relative overflow-hidden">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
 
       <div
@@ -41,11 +41,11 @@ const StartingPage = () => {
         {/* Get Started Button */}
         <Link
           to="/onboarding"
-          className="flex items-center justify-center gap-2 w-48 p-3 bg-[#023324] text-white text-lg rounded-full shadow-md hover:bg-[#012218] transition-colors duration-300"
+          className="flex items-center justify-center gap-2 w-48 p-3 bg-[#0066FF] text-white text-lg rounded-xl shadow-md transition-colors duration-300"
         >
           Get Started{" "}
           <span className="text-lg">
-            <img src="/arrow.png" alt="arrow" class="w-7 h-7" />
+            <img src="/arrow.png" alt="arrow" className="w-7 h-7" />
           </span>
         </Link>
 
