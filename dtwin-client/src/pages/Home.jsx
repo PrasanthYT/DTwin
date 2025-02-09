@@ -163,7 +163,7 @@ function Home({ markOnboardingComplete }) {
       if (response.ok) {
         console.log("User data submitted successfully");
         await Get_metabolicscore(); // Call after successful submission
-        markOnboardingComplete(); // Mark onboarding as complete
+        // markOnboardingComplete(); // Mark onboarding as complete
       } else {
         console.error("Failed to submit data:", response.status);
         setLoading(false); // Hide loading on error
@@ -305,7 +305,6 @@ function Home({ markOnboardingComplete }) {
       const token = sessionStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:4200/api/auth/user-health-score",
         "http://localhost:4200/api/auth/user-health-score",
         {
           method: "POST",

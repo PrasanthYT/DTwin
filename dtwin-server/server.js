@@ -32,7 +32,7 @@ app.post("/api/speech/generate", async (req, res) => {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "api-key": "ap2_0a38b083-a38b-47bc-ab3c-dced8318def0", // Your actual API key ap2_41728874-db7e-4f54-94d2-47a8c0dcf9dc
+          "api-key": "ap2_c545e50b-508b-42ee-92c6-86593dea28fb", // Your actual API key ap2_41728874-db7e-4f54-94d2-47a8c0dcf9dc
         },
       }
     );
