@@ -32,10 +32,10 @@ Our AI models have been meticulously fine-tuned using vast datasets and advanced
 This project is built at the intersection of **AI Development**, **Full-Stack Development**, and **UX Design**, ensuring a seamless and intelligent user experience.
 
 ## 📽️ Explainer Video / Presentation
-[🔗 Watch the Explainer Video](#) *(Coming Soon!)*
+[🔗 Watch the Explainer Video](https://youtu.be/JanWeh4F3K8?si=khScJuQ7yDO8EK1b)
 
 ## 🌍 Live Deployment
-[🔗 Try AI Health Twin](#) *(Coming Soon!)*
+[🔗 Try AI Health Twin](https://d-twinpro.vercel.app/)
 
 ## 📜 License
 This project is licensed under the [MIT License](LICENSE).
