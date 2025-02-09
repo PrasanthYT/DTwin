@@ -24,6 +24,8 @@ const HealthDashboard = () => {
   const [fitbitData, setFitbitData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const randomBloodSugar = Math.floor(Math.random() * (180 - 70 + 1)) + 70;
+
   // ** Fetch Data on Component Mount **
   useEffect(() => {
     const fetchData = async () => {
@@ -119,10 +121,10 @@ const HealthDashboard = () => {
   );
 
   // ✅ Extract sleep duration in hours and efficiency
-  const recentSleepDuration = recentSleepData
-    ? Math.round((recentSleepData?.sleep?.duration || 0) / (1000 * 60 * 60)) ||
-      "--"
-    : "--"; // Convert from milliseconds to hours
+  const recentSleepDuration = recentSleepData?.sleep?.minutesAsleep
+    ? (recentSleepData.sleep.minutesAsleep / 60).toFixed(1) // Converts to hours with 1 decimal place
+    : "--";
+
   const recentSleepEfficiency = recentSleepData?.sleep?.efficiency || "--";
 
   console.log("🛌 Recent Sleep Duration (hours):", recentSleepDuration);
@@ -311,11 +313,15 @@ const HealthDashboard = () => {
               <Card className="bg-red-500 text-white border-0 p-3">
                 <h3 className="text-sm">Blood Sugar</h3>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">20</span>
-                  <span className="text-xs">mmHg</span>
+                  <span className="text-xl font-bold">{randomBloodSugar}</span>
+                  <span className="text-xs">mg/dL</span>
                 </div>
                 <div className="mt-2 text-center bg-red-600/50 rounded-md py-1 text-xs">
-                  High
+                  {randomBloodSugar > 140
+                    ? "High"
+                    : randomBloodSugar < 90
+                    ? "Low"
+                    : "Normal"}
                 </div>
               </Card>
 

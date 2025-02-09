@@ -79,7 +79,7 @@ export default function SearchBox() {
   };
   
   const handleback = () => {
-    navigate(-1);
+    navigate("/dashboard");
   };
 
   return (

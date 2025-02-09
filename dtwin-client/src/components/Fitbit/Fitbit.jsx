@@ -1,21 +1,16 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { Card } from "@tremor/react";
+import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { Button } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
 
 function Fitbit() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [fitbitData, setFitbitData] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -68,7 +63,7 @@ function Fitbit() {
   const submitFitbitData = async (fitbitData) => {
     try {
       const token = sessionStorage.getItem("token");
-  
+
       const response = await fetch("http://localhost:4200/api/fitbit/save", {
         method: "POST",
         headers: {
@@ -77,7 +72,7 @@ function Fitbit() {
         },
         body: JSON.stringify(fitbitData),
       });
-  
+
       if (response.ok) {
         console.log("✅ Fitbit data saved successfully");
       } else {
@@ -117,152 +112,56 @@ function Fitbit() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("fitbitToken");
-    setIsAuthenticated(false);
-    setFitbitData(null);
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Fitbit Weekly Dashboard</h1>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      {isLoading && <div className="text-gray-600 mb-4">Loading...</div>}
-
-      {!isAuthenticated ? (
-        <button
-          onClick={handleAuth}
-          disabled={isLoading}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Authenticate with Fitbit
-        </button>
-      ) : (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Weekly Health Insights</h2>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <Card className="w-full max-w-md p-6 shadow-lg bg-white text-center">
+        {isAuthenticated ? (
+          <>
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              Fitbit Connected!
+            </h2>
+            <p className="text-gray-500 mt-2">
+              Your Fitbit data is now synced successfully.
+            </p>
+            <Button
+              onClick={() => navigate("/dashboard")}
+              className="w-full mt-4"
             >
-              Logout
-            </button>
-          </div>
-
-          {fitbitData && (
-            <div className="space-y-6">
-              {/* Steps Chart */}
-              <div className="bg-white p-4 rounded shadow">
-                <h3 className="font-bold mb-4">Daily Steps</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={fitbitData.weeklyData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tickFormatter={formatDate} />
-                      <YAxis />
-                      <Tooltip labelFormatter={formatDate} />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="activity.summary.steps"
-                        name="Steps"
-                        stroke="#8884d8"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Dashboard
+            </Button>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Connect Fitbit
+            </h2>
+            <p className="text-gray-500 mt-2">
+              Sync your health data by connecting your Fitbit account.
+            </p>
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mt-3 rounded">
+                {error}
               </div>
-
-              {/* Sleep Chart */}
-              <div className="bg-white p-4 rounded shadow">
-                <h3 className="font-bold mb-4">Sleep Duration</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={fitbitData.weeklyData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tickFormatter={formatDate} />
-                      <YAxis />
-                      <Tooltip labelFormatter={formatDate} />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="sleep.minutesAsleep"
-                        name="Sleep (minutes)"
-                        stroke="#82ca9d"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Heart Rate Chart */}
-              <div className="bg-white p-4 rounded shadow">
-                <h3 className="font-bold mb-4">Heart Rate</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={fitbitData.weeklyData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tickFormatter={formatDate} />
-                      <YAxis />
-                      <Tooltip labelFormatter={formatDate} />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="heartRate.activities-heart[0].value.restingHeartRate"
-                        name="Resting Heart Rate"
-                        stroke="#ff7300"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Daily Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                {fitbitData.weeklyData.map((day) => (
-                  <div key={day.date} className="bg-white p-4 rounded shadow">
-                    <h4 className="font-bold mb-2">{formatDate(day.date)}</h4>
-                    <div className="space-y-2 text-sm">
-                      <p>Steps: {day.activity.summary.steps}</p>
-                      <p>Calories: {day.activity.summary.caloriesOut}</p>
-                      <p>Sleep: {day.sleep?.minutesAsleep || "N/A"} min</p>
-                      <p>
-                        Heart Rate:{" "}
-                        {day.heartRate["activities-heart"][0].value
-                          .restingHeartRate || "N/A"}{" "}
-                        bpm
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+            <Button
+              onClick={handleAuth}
+              disabled={isLoading}
+              className="w-full mt-4"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Connecting...
+                </>
+              ) : (
+                "Connect Fitbit"
+              )}
+            </Button>
+          </>
+        )}
+      </Card>
     </div>
   );
 }
