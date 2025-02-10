@@ -41,7 +41,7 @@ const HealthDashboard = () => {
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/auth/user", {
+      const response = await axios.get("https://dtwin.onrender.com/api/auth/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -58,7 +58,7 @@ const HealthDashboard = () => {
   const fetchFitbitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -170,7 +170,7 @@ const HealthDashboard = () => {
     try {
       const token = sessionStorage.getItem("token");
       await axios.post(
-        "http://localhost:4200/api/auth/remove-medication",
+        "https://dtwin.onrender.com/api/auth/remove-medication",
         { medication },
         { headers: { Authorization: `Bearer ${token}` } }
       );

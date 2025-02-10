@@ -45,7 +45,7 @@ function Home({ markOnboardingComplete }) {
           return;
         }
 
-        const response = await fetch("http://localhost:4200/api/auth/user", {
+        const response = await fetch("https://dtwin.onrender.com/api/auth/user", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -151,7 +151,7 @@ function Home({ markOnboardingComplete }) {
       setLoading(true); // Loading before fetch
       setCurrentStep(9); // Loading screen
 
-      const response = await fetch("http://localhost:4200/api/auth/user-data", {
+      const response = await fetch("https://dtwin.onrender.com/api/auth/user-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -187,7 +187,7 @@ function Home({ markOnboardingComplete }) {
       console.log("Submitting avatar:", avatarUrl);
 
       const response = await fetch(
-        "http://localhost:4200/api/auth/user-avatar",
+        "https://dtwin.onrender.com/api/auth/user-avatar",
         {
           method: "POST",
           headers: {
@@ -305,7 +305,7 @@ function Home({ markOnboardingComplete }) {
       const token = sessionStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:4200/api/auth/user-health-score",
+        "https://dtwin.onrender.com/api/auth/user-health-score",
         {
           method: "POST",
           headers: {

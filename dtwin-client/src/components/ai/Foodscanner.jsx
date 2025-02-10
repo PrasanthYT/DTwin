@@ -37,7 +37,7 @@ const FoodScanner = () => {
         setIsProcessing(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:4200/api/identify-food', {
+            const response = await fetch('https://dtwin.onrender.com/api/identify-food', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64Image })
@@ -77,7 +77,7 @@ const FoodScanner = () => {
         };
     
         try {
-            const response = await axios.post('http://localhost:4200/api/foodlog/log', foodLog);
+            const response = await axios.post('https://dtwin.onrender.com/api/foodlog/log', foodLog);
             console.log('Added to log:', response.data);
             toast.success('Food Logged successfully')
         } catch (error) {

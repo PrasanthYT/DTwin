@@ -25,7 +25,7 @@ export default function HealthHeartRate() {
   const fetchHeartRateData = async () => {
     try {
       const token = sessionStorage.getItem("token"); // Adjust based on auth method
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

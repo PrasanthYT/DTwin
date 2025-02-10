@@ -21,7 +21,7 @@ const HeartAnalysis = () => {
   const fetchHeartRateData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

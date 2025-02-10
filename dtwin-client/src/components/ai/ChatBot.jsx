@@ -116,7 +116,7 @@ const Chatbot = () => {
 
   const generateSpeech = async (text) => {
     try {
-      const response = await fetch("http://localhost:4200/api/speech/generate", {
+      const response = await fetch("https://dtwin.onrender.com/api/speech/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

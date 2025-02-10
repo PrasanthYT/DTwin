@@ -58,7 +58,7 @@ if (!foodData) {
     const userId = decodedToken.userId; // Extract userId from JWT payload
 
     const response = await axios.post(
-      "http://localhost:4200/api/food/add",
+      "https://dtwin.onrender.com/api/food/add",
       {
         userId,
         name: foodData.name,

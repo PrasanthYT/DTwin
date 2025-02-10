@@ -25,7 +25,7 @@ export default function Settings() {
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:4200/api/auth/user", {
+      const response = await fetch("https://dtwin.onrender.com/api/auth/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -48,7 +48,7 @@ export default function Settings() {
     try {
       const token = sessionStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:4200/api/auth/update-profile",
+        "https://dtwin.onrender.com/api/auth/update-profile",
         {
           method: "PUT",
           headers: {

@@ -206,7 +206,7 @@ const WorkoutActivityPage = () => {
   const fetchFitbitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -222,7 +222,7 @@ const WorkoutActivityPage = () => {
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:4200/api/auth/user", {
+      const response = await fetch("https://dtwin.onrender.com/api/auth/user", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

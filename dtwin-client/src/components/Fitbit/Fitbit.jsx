@@ -28,7 +28,7 @@ function Fitbit() {
   const handleAuth = async () => {
     setError(null);
     try {
-      const response = await axios.get("http://localhost:4200/auth");
+      const response = await axios.get("https://dtwin.onrender.com/auth");
       window.location.href = response.data.authUrl;
     } catch (error) {
       setError(
@@ -42,7 +42,7 @@ function Fitbit() {
     setError(null);
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:4200/token", {
+      const response = await axios.post("https://dtwin.onrender.com/token", {
         code,
       });
       const { access_token } = response.data;
@@ -64,7 +64,7 @@ function Fitbit() {
     try {
       const token = sessionStorage.getItem("token");
 
-      const response = await fetch("http://localhost:4200/api/fitbit/save", {
+      const response = await fetch("https://dtwin.onrender.com/api/fitbit/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +90,7 @@ function Fitbit() {
 
     try {
       const response = await axios.get(
-        `http://localhost:4200/fitbit-data?token=${token}`
+        `https://dtwin.onrender.com/fitbit-data?token=${token}`
       );
       setFitbitData(response.data);
       console.log("Fitbit data:", response.data);
