@@ -86,7 +86,9 @@ export default function SignIn() {
     }
   };
   
-
+  const handleSignup = () => {
+    navigate("/signup");
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 relative">
@@ -169,7 +171,7 @@ export default function SignIn() {
           <div className="mt-4 text-center">
             <p className="text-sm">
               Don’t have an account?{" "}
-              <a href="/signup" className="text-red-500 font-medium hover:underline">Sign Up</a>
+              <a onClick={handleSignup} className="text-red-500 font-medium hover:underline">Sign Up</a>
             </p>
           </div>
         </div>
