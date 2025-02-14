@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import SugarSpikeAnalyzer from "../ai/SugarspikeAnalyzier";
 import {
   ChevronLeft,
   FolderCog,
@@ -38,10 +39,13 @@ import { Input } from "@/components/ui/input";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(100);
+  const selected_Food = localStorage.getItem("selectedFood")
+  const [sugarspike, setSugarspike] = useState();
 
   const [foodData, setFoodData] = useState(
     location.state ||
@@ -59,12 +63,22 @@ const SearchResults = () => {
         sugar: 14,
       }
   );
+  const mealInput = {
+    dishName:foodData.name ,
+    quantity: 250,
+    glycemicIndex: foodData.glycemicIndex,
+    glycemicLoad: foodData.glycemicLoad,
+    preMealGlucose: 90,
+};
 
   useEffect(() => {
     if (!foodData) {
       navigate("/search");
     } else {
       localStorage.setItem("selectedFood", JSON.stringify(foodData));
+      setSugarspike(SugarSpikeAnalyzer(mealInput))
+
+
     }
   }, [foodData]);
 
@@ -175,7 +189,7 @@ const SearchResults = () => {
   );
 
   const SugarSpikeIndicator = ({ currentValue, baselineValue }) => {
-    const difference = currentValue - baselineValue;
+    const difference = sugarspike;
     return (
       <Badge
         variant={difference >= 0 ? "success" : "destructive"}
