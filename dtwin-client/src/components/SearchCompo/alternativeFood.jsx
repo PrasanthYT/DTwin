@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const FoodAlternatives = ({ foodData }) => {
   const navigate = useNavigate();
@@ -14,12 +14,13 @@ const FoodAlternatives = ({ foodData }) => {
     navigate("/searchResults", { state: { ...food } });
   };
 
-
   const fetchAlternatives = async (foodItem) => {
     setLoading(true);
     try {
-      const genAI = new GoogleGenerativeAI("AIzaSyBdwqtlWDMCKv_hvJX4tVAFA6pGV8k9Ojk");
-      
+      const genAI = new GoogleGenerativeAI(
+        "AIzaSyBdwqtlWDMCKv_hvJX4tVAFA6pGV8k9Ojk"
+      );
+
       const model = genAI.getGenerativeModel({
         model: "gemini-2.0-flash",
         systemInstruction: `When provided with a food item in the following format:
@@ -77,9 +78,9 @@ respond in list of JSON format
 
       const result = await chatSession.sendMessage(JSON.stringify(foodItem));
       let responseText = result.response.text();
-      responseText = responseText.replace(/```json|```/g, "").trim()
+      responseText = responseText.replace(/```json|```/g, "").trim();
       const aiResponse = JSON.parse(responseText);
-      console.log(aiResponse)
+      console.log(aiResponse);
       setAlternatives(aiResponse);
     } catch (err) {
       setError("Failed to fetch alternatives: " + err.message);
@@ -91,7 +92,8 @@ respond in list of JSON format
 
   useEffect(() => {
     if (!foodData) {
-      fetchAlternatives(      {id: 14,
+      fetchAlternatives({
+        id: 14,
         name: "Pani Puri",
         image: "https://example.com/pani_puri.jpg",
         calories: 150,
@@ -101,24 +103,30 @@ respond in list of JSON format
         glycemicIndex: 65,
         glycemicLoad: 15,
         fiber: 2,
-        sugar: 5
-      },);
+        sugar: 5,
+      });
     }
   }, [foodData]);
 
-//   if (!foodData) {
-//     return <div className="p-4">No food data provided</div>;
-//   }
+  //   if (!foodData) {
+  //     return <div className="p-4">No food data provided</div>;
+  //   }
 
-return (
+  const handleBack = () => {
+    navigate("/searchResults");
+  };
+
+  return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 p-4 rounded-b-3xl shadow-lg">
         <header className="sticky top-0 z-20 bg-blue-600 text-white py-2.5 flex items-center gap-3 w-full">
-          <ChevronLeft 
-            onClick={() => navigate(-1)} 
-            className="w-10 h-8 cursor-pointer hover:bg-blue-700 rounded-full p-1 transition-colors" 
+          <ChevronLeft
+            onClick={handleBack}
+            className="w-10 h-8 cursor-pointer hover:bg-blue-700 rounded-full p-1 transition-colors"
           />
-          <h1 className="text-xl font-bold tracking-tight">Healthier Alternatives</h1>
+          <h1 className="text-xl font-bold tracking-tight">
+            Healthier Alternatives
+          </h1>
         </header>
       </div>
 
@@ -144,52 +152,55 @@ return (
           </Card>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-700 mb-2">Suggested Alternatives</h2>
-            {alternatives && alternatives.map((food) => (
-              <Card
-                key={food.id}
-                onClick={() => handleFoodClick(food)}
-                className="p-4 hover:shadow-md transition-all duration-200 cursor-pointer group"
-              >
-                <div className="flex items-center gap-4">
-                  <img 
-                    src={food.image} 
-                    alt={food.name} 
-                    className="w-20 h-20 rounded-lg object-cover border border-gray-200" 
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                      {food.name}
-                    </h3>
-                    <div className="flex gap-2 mt-1 flex-wrap">
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
-                        {food.calories} kcal
-                      </span>
-                      <span className="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full">
-                        GI: {food.glycemicIndex}
-                      </span>
-                      <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-full">
-                        Protein: {food.protein}g
-                      </span>
-                    </div>
-                    <div className="relative mt-2">
-                      <p 
-                        className="text-sm text-gray-600 leading-tight line-clamp-2"
-                        title={food.reason}
-                      >
-                        {food.reason}
-                      </p>
-                      {food.reason.length > 80 && (
-                        <span className="absolute bottom-0 right-0 bg-white pl-1 text-blue-600 text-sm cursor-help">
-                          ...
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">
+              Suggested Alternatives
+            </h2>
+            {alternatives &&
+              alternatives.map((food) => (
+                <Card
+                  key={food.id}
+                  onClick={() => handleFoodClick(food)}
+                  className="p-4 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={food.image}
+                      alt={food.name}
+                      className="w-20 h-20 rounded-lg object-cover border border-gray-200"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                        {food.name}
+                      </h3>
+                      <div className="flex gap-2 mt-1 flex-wrap">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
+                          {food.calories} kcal
                         </span>
-                      )}
+                        <span className="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full">
+                          GI: {food.glycemicIndex}
+                        </span>
+                        <span className="px-2 py-1 bg-purple-50 text-purple-600 text-xs rounded-full">
+                          Protein: {food.protein}g
+                        </span>
+                      </div>
+                      <div className="relative mt-2">
+                        <p
+                          className="text-sm text-gray-600 leading-tight line-clamp-2"
+                          title={food.reason}
+                        >
+                          {food.reason}
+                        </p>
+                        {food.reason.length > 80 && (
+                          <span className="absolute bottom-0 right-0 bg-white pl-1 text-blue-600 text-sm cursor-help">
+                            ...
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-blue-600 ml-2 transition-colors" />
                   </div>
-                  <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-blue-600 ml-2 transition-colors" />
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
           </div>
         )}
       </div>

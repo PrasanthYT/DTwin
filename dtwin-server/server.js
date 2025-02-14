@@ -220,6 +220,7 @@ app.get("/api/fitbit/data", async (req, res) => {
         `${process.env.FITBIT_API_URL}activities/heart/date/${weekAgoStr}/${today}.json`,
         config
       ),
+      
     ]);
 
     res.json({

@@ -37,22 +37,30 @@ exports.saveGlucoseData = async (req, res) => {
   }
 };
 
-// ✅ Get glucose data for a user
+// ✅ Get glucose data for a user (sorted latest first)
 exports.getGlucoseData = async (req, res) => {
-    try {
-      const { userId } = req.body; // ✅ Get userId from the request body
-  
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
-      }
-  
-      // ✅ Fetch glucose data for the user (sorted latest first)
-      const glucoseData = await GlucoseData.find({ userId }).sort({ date: -1 });
-  
-      res.status(200).json({ success: true, data: glucoseData });
-    } catch (error) {
-      console.error("❌ Error fetching glucose data:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { userId } = req.query; // ✅ Get userId from query params
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
     }
-  };
-  
+
+    // ✅ Fetch all glucose data for the user (sorted by latest date & time)
+    const glucoseData = await GlucoseData.find({ userId }).sort({
+      date: -1,
+      time: -1,
+    });
+
+    if (!glucoseData.length) {
+      return res
+        .status(404)
+        .json({ message: "No glucose data found for this user" });
+    }
+
+    res.status(200).json({ success: true, data: glucoseData });
+  } catch (error) {
+    console.error("❌ Error fetching glucose data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

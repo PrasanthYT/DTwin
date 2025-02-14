@@ -153,6 +153,7 @@ const HealthDashboard = () => {
   const handleHeartRate = () => navigate("/heartratemonitor");
   const handleHealthScore = () => navigate("/healthscore");
   const handleAddMeds = () => navigate("/addmeds");
+  const handleHealthBloodSugar = () => navigate("/healthbloodsugar");
 
   const handleRemoveMed = async (medication) => {
     try {
@@ -298,7 +299,7 @@ const HealthDashboard = () => {
                 </div>
               </Card>
 
-              <Card className="bg-red-500 text-white border-0 p-3">
+              <Card onClick={handleHealthBloodSugar} className="bg-red-500 text-white border-0 p-3">
                 <h3 className="text-sm">Blood Sugar</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-bold">{randomBloodSugar}</span>

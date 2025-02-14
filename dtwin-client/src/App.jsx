@@ -272,11 +272,18 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route path="/test" element={<HealthBloodSugar />} />
+        <Route
+          path="/healthbloodsugar"
+          element={
+            <PrivateRoute>
+              <HealthBloodSugar />
+            </PrivateRoute>
+          }
+        />
         <Route path="/test1" element={<SearchCompo />} />
       </Routes>
       <Routes>
-        <Route path="/glucose" element={<GlucoseMonitor/>} />
+        <Route path="/glucose" element={<GlucoseMonitor />} />
       </Routes>
     </Router>
   );

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  GoogleGenerativeAI,
-} from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // import SugarSpikeAnalyzer from "../ai/SugarspikeAnalyzier";
 import {
@@ -42,12 +40,22 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(100);
   const selected_Food = localStorage.getItem("selectedFood");
+  const [caloriesBurnt, setCaloriesBurnt] = useState(0);
+  const [hrv, setHrv] = useState(0);
+  const [sleepScore, setSleepScore] = useState(0);
+  const [fastingGlucose, setFastingGlucose] = useState(0);
+  const [caloriesEaten, setCaloriesEaten] = useState(0);
+  const [metabolicScore, setMetabolicScore] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [sugarspike, setSugarspike] = useState();
   const apiKey = "AIzaSyDK1ktNxAi5UPMZSSivCJcXxFjyxz483gA";
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -84,10 +92,10 @@ const SearchResults = () => {
   );
   const mealInput = {
     dishName: foodData.name,
-    quantity: 250,
+    quantity: quantity,
     glycemicIndex: foodData.glycemicIndex,
     glycemicLoad: foodData.glycemicLoad,
-    preMealGlucose: 90,
+    preMealGlucose: foodData.sugar,
   };
   async function SugarSpikeAnalyzer() {
     const chatSession = model.startChat({
@@ -168,6 +176,63 @@ const SearchResults = () => {
 
   const totalCalories = scaledFoodData.calories;
 
+  useEffect(() => {
+    fetchMetabolicData();
+  }, []);
+
+  const fetchMetabolicData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
+
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken?.userId;
+      if (!userId) throw new Error("Invalid token: User ID not found");
+
+      // ✅ Fetch Fitbit Data
+      const fitbitResponse = await axios.get(
+        "http://localhost:4200/api/fitbit/get",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const fitbitData = fitbitResponse.data.data.weeklyData[0]; // Latest Fitbit data
+
+      const caloriesOut = fitbitData.activity.summary.caloriesOut;
+      const restingHR = fitbitData.activity.summary.restingHeartRate;
+      const sleepScore = fitbitData.sleep.sleepRecords?.[0]?.efficiency || 0; // ✅ Corrected sleep score extraction
+
+      setCaloriesBurnt(caloriesOut);
+      setHrv(fitbitData.hrv?.value || 55); // ✅ Set HRV from Fitbit API if available
+      setSleepScore(sleepScore);
+
+      // ✅ Fetch Glucose Data (Fixed API Call)
+      const glucoseResponse = await axios.get(
+        `http://localhost:4200/api/glucose/get?userId=${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const latestGlucose = glucoseResponse.data.data?.[0]?.glucoseLevel || 0;
+      setFastingGlucose(latestGlucose);
+
+      // ✅ Calculate Metabolic Score
+      const score = calculateMetabolicScore(
+        caloriesOut,
+        restingHR,
+        latestGlucose,
+        sleepScore,
+        totalCalories
+      );
+      setMetabolicScore(score);
+    } catch (error) {
+      console.error("❌ Error fetching metabolic data:", error);
+      setError("Failed to load metabolic data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   function calculateMetabolicScore(
     caloriesBurnt,
     hrv,
@@ -185,7 +250,7 @@ const SearchResults = () => {
   }
 
   // Example usage
-  const metabolicScore = calculateMetabolicScore(2000, 50, 90, 80, 600); 
+  // const metabolicScore = calculateMetabolicScore(2000, 50, 90, 80, 600);
 
   const metabolicData = [
     { time: "Morning", level: 70 },
@@ -205,7 +270,7 @@ const SearchResults = () => {
 
   // const metabolicScore =
   //   metabolicData[metabolicData.length - 1].level - metabolicData[0].level;
-  const isPositiveScore = metabolicScore >= 0;
+  const isPositiveScore = metabolicScore >= 30;
 
   const handleQuantityChange = (e) => {
     let newQuantity = parseInt(e.target.value);
@@ -236,10 +301,11 @@ const SearchResults = () => {
 
   const ScoreDisplay = ({ score }) => (
     <Badge
-      variant={score >= 0 ? "success" : "destructive"}
-      className="flex items-center gap-1 px-3 py-1.5 text-lg font-bold"
+      className={`flex items-center gap-1 px-3 py-1.5 text-lg font-bold ${
+        score >= 30 ? "bg-green-600 text-white" : "bg-red-600 text-white"
+      }`}
     >
-      {score >= 0 ? (
+      {score >= 30 ? (
         <ArrowUp className="h-4 w-4" />
       ) : (
         <ArrowDown className="h-4 w-4" />
@@ -250,11 +316,16 @@ const SearchResults = () => {
   );
 
   const SugarSpikeIndicator = ({ currentValue, baselineValue }) => {
-    const difference = sugarspike;
+    const difference = currentValue - baselineValue; // ✅ Ensure calculation is correct
     return (
       <Badge
-        variant={difference >= 0 ? "success" : "destructive"}
-        className="flex items-center gap-1 px-3 py-1.5 text-lg font-bold"
+        className={`flex items-center gap-1 px-3 py-1.5 text-lg font-bold 
+          ${
+            difference >= 0
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"
+          }
+        `}
       >
         {difference >= 0 ? (
           <ArrowUp className="h-4 w-4" />
@@ -481,7 +552,7 @@ const SearchResults = () => {
                       className="w-full"
                       variant="secondary"
                       size="lg"
-                      onClick={() => navigate("/healthy-swaps")}
+                      onClick={() => navigate("/alternativefood")}
                     >
                       <ArrowUpRight className="mr-2 h-4 w-4" /> See Healthy
                       Swaps

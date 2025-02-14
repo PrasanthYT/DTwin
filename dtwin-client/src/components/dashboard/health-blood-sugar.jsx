@@ -10,7 +10,7 @@ import {
   HeartPulse,
   LineChart,
 } from "lucide-react";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import {
   ResponsiveContainer,
@@ -22,6 +22,7 @@ import {
   Area,
 } from "recharts";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 
 const GlucoseMonitor = () => {
   const fileInputRef = useRef(null);
@@ -39,6 +40,7 @@ const GlucoseMonitor = () => {
   const [error, setError] = useState(null);
   const [fileUploaded, setFileUploaded] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
+  const navigate = useNavigate();
 
   // Define target values in mg/dL
   const TARGET_MIN = 70;
@@ -63,13 +65,19 @@ const GlucoseMonitor = () => {
       const userId = decodedToken?.userId;
       if (!userId) throw new Error("Invalid token: User ID not found");
 
-      const response = await axios.post(
-        "http://localhost:4200/api/glucose/get",
-        { userId },
+      const response = await axios.get(
+        `http://localhost:4200/api/glucose/get?userId=${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const fetchedData = response.data.data.map((record) => ({
+      if (!response.data || response.data.length === 0) {
+        console.warn("No glucose data received from API");
+        setFetchingData(false);
+        return;
+      }
+
+      // ✅ Format API Response for the Graph
+      const formattedData = response.data.data.map((record) => ({
         time: record.time,
         fullDate: new Date(record.date),
         dateString: record.date,
@@ -82,8 +90,12 @@ const GlucoseMonitor = () => {
             : null,
       }));
 
-      setGlucoseData(fetchedData);
-      updateDisplayData(fetchedData, selectedRange, new Date());
+      console.log("✅ Formatted Glucose Data:", formattedData);
+
+      // ✅ Update State and Graph
+      setGlucoseData(formattedData);
+      setLatestDate(new Date());
+      updateDisplayData(formattedData, selectedRange, new Date());
     } catch (error) {
       console.error("❌ Error fetching glucose data:", error);
       setError("Failed to load glucose data.");
@@ -199,30 +211,36 @@ const GlucoseMonitor = () => {
       case "Today":
         startDate.setHours(0, 0, 0, 0);
         filteredData = data.filter(
-          (reading) => reading.fullDate.toDateString() === lastDate.toDateString()
+          (reading) =>
+            reading.fullDate.toDateString() === lastDate.toDateString()
         );
         break;
       case "7 days":
         startDate.setDate(lastDate.getDate() - 6);
         filteredData = data.filter(
-          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
       case "Month":
         startDate.setMonth(lastDate.getMonth() - 1);
         filteredData = data.filter(
-          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
       case "Quarter":
         startDate.setMonth(lastDate.getMonth() - 3);
         filteredData = data.filter(
-          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
       default:
         filteredData = data;
     }
+
+    console.log("📊 Filtered Display Data:", filteredData); // ✅ Debugging Log
 
     setDisplayData(filteredData);
     updateMetrics(filteredData);
@@ -249,8 +267,7 @@ const GlucoseMonitor = () => {
         : 0;
     setFastingAverage(fastingAvg.toFixed(1));
 
-    const avg =
-      data.reduce((acc, curr) => acc + curr.glucose, 0) / data.length;
+    const avg = data.reduce((acc, curr) => acc + curr.glucose, 0) / data.length;
     setAvgGlucose(avg.toFixed(1));
     setHba1c(calculateHbA1c(avg));
   };
@@ -327,11 +344,20 @@ const GlucoseMonitor = () => {
     return null;
   };
 
+  const handleBack = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen px-4 py-6 space-y-6">
       {/* Navigation */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" size="icon" className="rounded-lg">
+        <Button
+          onClick={handleBack}
+          variant="outline"
+          size="icon"
+          className="rounded-lg"
+        >
           <ArrowLeft className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-bold">Blood Sugar</h1>
@@ -555,7 +581,9 @@ const GlucoseMonitor = () => {
               <HeartPulse className="h-5 w-5 text-red-600 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className={`text-3xl font-extrabold ${getStatusColor(hba1c)}`}>
+              <div
+                className={`text-3xl font-extrabold ${getStatusColor(hba1c)}`}
+              >
                 {hba1c}%
               </div>
               <p className={`text-xs ${getStatusColor(hba1c)}`}>
