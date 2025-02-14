@@ -93,6 +93,25 @@ const SearchResults = () => {
 
   const totalCalories = scaledFoodData.calories;
 
+  function calculateMetabolicScore(
+    caloriesBurnt,
+    hrv,
+    fastingGlucose,
+    sleepScore,
+    caloriesEaten
+  ) {
+    const tef = caloriesEaten * 0.1;
+    const adaptiveThermogenesis = hrv + fastingGlucose + sleepScore;
+    const rawScore = caloriesBurnt + adaptiveThermogenesis + tef;
+    const maxPossibleScore = 5000; // Adjust this based on expected ranges
+    let metabolicScore = (rawScore / maxPossibleScore) * 100;
+    metabolicScore = Math.max(0, Math.min(100, metabolicScore));
+    return Math.round(metabolicScore);
+  }
+
+  // Example usage
+  const metabolicScore = calculateMetabolicScore(2000, 50, 90, 80, 600);
+
   const metabolicData = [
     { time: "Morning", level: 70 },
     { time: "Afternoon", level: 85 },
@@ -109,8 +128,8 @@ const SearchResults = () => {
     { time: "2.5h", glucose: 90 },
   ];
 
-  const metabolicScore =
-    metabolicData[metabolicData.length - 1].level - metabolicData[0].level;
+  // const metabolicScore =
+  //   metabolicData[metabolicData.length - 1].level - metabolicData[0].level;
   const isPositiveScore = metabolicScore >= 0;
 
   const handleQuantityChange = (e) => {
@@ -201,7 +220,9 @@ const SearchResults = () => {
                   {foodData.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary">{scaledFoodData.calories} cal</Badge>
+                  <Badge variant="secondary">
+                    {scaledFoodData.calories} cal
+                  </Badge>
                   <Badge variant="outline">{quantity} g</Badge>
                 </div>
               </div>
@@ -221,10 +242,10 @@ const SearchResults = () => {
 
           {/* ✅ Functional Quantity Input */}
           <div className="flex gap-4 items-center">
-            <Input 
-              type="number" 
-              value={quantity} 
-              onChange={handleQuantityChange} 
+            <Input
+              type="number"
+              value={quantity}
+              onChange={handleQuantityChange}
               className="text-center w-24 border border-gray-300 rounded-md p-2"
             />
             <Button className="flex-1 bg-blue-700" onClick={handleAddFood}>
