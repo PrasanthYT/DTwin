@@ -33,6 +33,7 @@ import SplashScreen from "./components/onboarding/SplashScreen";
 import PrivateRoute from "./PrivateRoute";
 import Settings from "./components/dashboard/settings";
 import FoodAlternatives from "./components/SearchCompo/alternativeFood";
+import HealthBloodSugar from "./components/dashboard/health-blood-sugar";
 
 // ✅ PublicRoute to prevent signed-in users from accessing auth pages
 const PublicRoute = ({ children }) => {
@@ -270,6 +271,8 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route path="/test" element={<HealthBloodSugar />} />
+        <Route path="/test1" element={<SearchCompo />} />
       </Routes>
     </Router>
   );

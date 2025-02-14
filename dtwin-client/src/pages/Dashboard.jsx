@@ -1,32 +1,102 @@
-import React, { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Bell,
-  ChevronRight,
   Search,
   Plus,
   MessageSquare,
   Activity,
   X,
   LogOut,
+  Heart,
+  Droplet,
+  Moon,
+  Footprints,
+  Flame,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/dashboard/bottom-nav";
 import FitbitConnect from "@/components/Fitbit/FitbitConnect";
-import axios from "axios";
+import { Separator } from "@/components/ui/separator";
+
+function MetricCard({
+  icon: Icon,
+  title,
+  value,
+  unit,
+  color,
+  max,
+  badge,
+  onClick,
+}) {
+  return (
+    <Card
+      className="hover:shadow-lg transition-all cursor-pointer"
+      onClick={onClick}
+    >
+      <CardContent className="p-6 flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 bg-${color}-100 rounded-lg`}>
+            <Icon className={`w-6 h-6 text-${color}-500`} />
+          </div>
+          <h3 className="font-semibold text-lg">{title}</h3>
+        </div>
+        <div className="text-3xl font-bold">
+          {value}{" "}
+          {unit && (
+            <span className="text-sm font-normal text-gray-500">{unit}</span>
+          )}
+        </div>
+        <Progress value={value} max={max} className="h-2" />
+        {badge && badge}
+      </CardContent>
+    </Card>
+  );
+}
+
+function getBloodSugarBadge(value) {
+  if (value > 140)
+    return (
+      <Badge variant="destructive" className="font-medium">
+        High
+      </Badge>
+    );
+  if (value < 90)
+    return (
+      <Badge variant="warning" className="font-medium">
+        Low
+      </Badge>
+    );
+  return (
+    <Badge variant="success" className="font-medium">
+      Normal
+    </Badge>
+  );
+}
 
 const HealthDashboard = () => {
   const navigate = useNavigate();
-
-  // ** State for User & Fitbit Data **
   const [userData, setUserData] = useState(null);
   const [fitbitData, setFitbitData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  console.log(userData);
+
   const randomBloodSugar = Math.floor(Math.random() * (180 - 70 + 1)) + 70;
 
-  // ** Fetch Data on Component Mount **
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -37,13 +107,15 @@ const HealthDashboard = () => {
     fetchData();
   }, []);
 
-  // ** Fetch User Data **
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/auth/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://dtwin.onrender.com/api/auth/user",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.status === 200) {
         console.log("✅ User Data:", response.data);
@@ -54,13 +126,15 @@ const HealthDashboard = () => {
     }
   };
 
-  // ** Fetch Fitbit Data **
   const fetchFitbitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://dtwin.onrender.com/api/fitbit/get",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.status === 200) {
         console.log("✅ Fitbit Data:", response.data);
@@ -71,97 +145,65 @@ const HealthDashboard = () => {
     }
   };
 
-  const email = userData?.user?.username || ""; // Ensure username (email) exists
-  const extractedName = email.split("@")[0]; // Get part before '@'
+  const email = userData?.user?.username || "";
+  const extractedName = email.split("@")[0];
   const username = userData?.user?.name || extractedName || "User";
   const healthScore = userData?.user?.healthData?.healthScore || "--";
-  const userId = userData?.user?.userId; // Corrected userId extraction
+  const avatar = userData?.user?.userDetails?.avatar || null;
+  const userId = userData?.user?.userId;
 
-  console.log("👤 Username:", username);
-  console.log("📊 Health Score:", healthScore);
-  console.log("🆔 User ID:", userId);
-
-  // ✅ Ensure Fitbit Data Matches User
   const isFitbitDataAvailable =
     fitbitData && String(fitbitData.userId) === String(userData?.user?.userId);
 
-  // ✅ Extract Weekly Data Safely
   const weeklyData = isFitbitDataAvailable ? fitbitData.weeklyData : [];
   const latestDay =
     weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
 
-  // ✅ Extract Health Metrics
-  // ✅ Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
 
-  // ✅ Sort weeklyData by date (descending) to get the latest first
   const sortedWeeklyData =
     fitbitData?.data?.weeklyData?.sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     ) || [];
 
-  // ✅ Find today's data or the most recent available
   const recentData = sortedWeeklyData.find(
     (day) => new Date(day.date) <= new Date(today)
   );
 
-  // ✅ Extract the resting heart rate safely
   const recentRestingHeartRate = recentData
     ? recentData?.heartRate?.["activities-heart"]?.[0]?.value
         ?.restingHeartRate ||
       recentData?.activity?.summary?.restingHeartRate ||
       "--"
-    : "--"; // Fallback if no data is available
+    : "--";
 
-  console.log("📊 Recent Resting Heart Rate:", recentRestingHeartRate);
-
-  // ✅ Find today's sleep data or the most recent available
   const recentSleepData = sortedWeeklyData.find(
     (day) => new Date(day.date) <= new Date(today)
   );
 
-  // ✅ Extract sleep duration in hours and efficiency
   const recentSleepDuration = recentSleepData?.sleep?.minutesAsleep
-    ? (recentSleepData.sleep.minutesAsleep / 60).toFixed(1) // Converts to hours with 1 decimal place
+    ? (recentSleepData.sleep.minutesAsleep / 60).toFixed(1)
     : "--";
 
   const recentSleepEfficiency = recentSleepData?.sleep?.efficiency || "--";
 
-  console.log("🛌 Recent Sleep Duration (hours):", recentSleepDuration);
-  console.log("📈 Sleep Efficiency:", recentSleepEfficiency);
-
-  // ✅ Find today's or the most recent available data
   const recentActivityData = sortedWeeklyData.find(
     (day) => new Date(day.date) <= new Date(today)
   );
 
-  // ✅ Extract Daily Steps
   const recentDailySteps = recentActivityData?.activity?.summary?.steps || "--";
 
-  // ✅ Extract Active Minutes (Fairly + Very Active Minutes)
   const recentActiveMinutes =
     recentActivityData?.activity?.summary?.lightlyActiveMinutes || 0;
 
-  // ✅ Extract Total Distance (if needed)
   const totalDistance =
     latestDay?.activity?.summary?.distances?.find((d) => d.activity === "total")
       ?.distance || "--";
 
-  // ✅ Extract Calories Burned
   const caloriesBurned = latestDay?.activity?.summary?.caloriesOut || "--";
 
-  console.log("📊 Extracted Fitbit Data:", {
-    recentSleepDuration,
-    recentDailySteps,
-    recentActiveMinutes,
-    totalDistance,
-    caloriesBurned,
-  });
-
-  // ** Handle Navigation **
   const handleWellnessAI = () => navigate("/wellnessai");
   const handleSearchBar = () => navigate("/search");
-
   const handleHeartRate = () => navigate("/heartratemonitor");
   const handleHealthScore = () => navigate("/healthscore");
   const handleAddMeds = () => navigate("/addmeds");
@@ -174,257 +216,267 @@ const HealthDashboard = () => {
         { medication },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchUserData(); // Refresh user data after removing
+      fetchUserData();
     } catch (error) {
       console.error("❌ Error removing medication:", error);
     }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("token"); // ✅ Remove token
-    navigate("/signin"); // ✅ Redirect to login page
+    sessionStorage.removeItem("token");
+    navigate("/signin");
   };
 
   return (
-    // Added overflow-x-hidden to prevent horizontal scroll
-    <div className="min-h-screen text-slate-900 overflow-x-hidden">
-      {/* Main content wrapper with bottom padding for navigation */}
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-slate-900 overflow-x-hidden">
       <div className="pb-28">
-        {" "}
-        {/* Increased padding bottom to 7rem (28) */}
-        {/* Dark Header Section */}
-        <div className="bg-slate-900 text-white p-4 rounded-b-3xl mb-4">
-          <div className="max-w-sm mx-auto">
+        {/* Enhanced Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white p-8 rounded-b-[2.5rem] mb-8 shadow-lg">
+          <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
-              <span className="text-sm opacity-80">
+              <span className="text-sm font-medium bg-white/20 px-4 py-1 rounded-full">
                 {new Date().toDateString()}
               </span>
-              <Bell className="w-5 h-5 opacity-80" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="hover:bg-white/20 transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-xl">👋</span>
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900"></div>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-5">
+                <Avatar className="w-20 h-20 border-4 border-white/30 shadow-xl">
+                  <AvatarImage src={avatar} alt={username} />
+                  <AvatarFallback className="text-xl">
+                    {username[0]}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span>Hi, {username}!</span>
-                    <span className="text-yellow-300">⭐</span>
-                    <span className="text-sm opacity-80">Pro Member</span>
-                  </div>
-                  <div className="text-sm opacity-80">
-                    Health Score {healthScore}
+                  <h1 className="text-3xl font-bold tracking-tight mb-2">
+                    Hi, {username}!
+                  </h1>
+                  <div className="flex items-center gap-3 text-white/90">
+                    <Badge className="bg-white/20 hover:bg-white/30 transition-colors whitespace-nowrap">
+                      Pro Member
+                    </Badge>
+                    <span className="flex items-center gap-2">
+                      <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                      <span className="whitespace-nowrap">
+                        Health Score: {healthScore}
+                      </span>
+                    </span>
                   </div>
                 </div>
               </div>
-              <LogOut onClick={handleLogout} className="w-5 h-5 opacity-80" />
             </div>
 
-            <div className="relative mt-4" onClick={handleSearchBar}>
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+              <Input
                 type="text"
                 placeholder="Search DTwin..."
-                className="w-full bg-white/20 rounded-xl py-2 pl-10 pr-4 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 pl-12 h-12 rounded-xl focus:ring-2 focus:ring-white/50"
+                onClick={handleSearchBar}
               />
             </div>
           </div>
         </div>
-        {/* Scrollable content area */}
-        <div className="max-w-sm mx-auto px-4 space-y-6">
-          {/* AI Assistant Card */}
-          <Card className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg">AI Wellness Assistant</h3>
-                <p className="text-sm opacity-90">
-                  Get personalized health insights
-                </p>
+
+        <div className="max-w-4xl mx-auto px-4 space-y-6">
+          {/* Enhanced AI Assistant Card */}
+          <Card className="relative border-none overflow-hidden">
+            {/* Background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800"></div>
+
+            {/* Decorative blur effects */}
+            <div className="absolute inset-0">
+              <div className="absolute -top-32 -right-16 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+              <div className="absolute -bottom-32 -left-16 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+            </div>
+
+            <CardContent className="relative p-8 space-y-6">
+              {/* Content section */}
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10 shrink-0">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-2xl text-white tracking-tight">
+                    AI Wellness Assistant
+                  </h3>
+                  <p className="text-base text-white/80">
+                    Get personalized health insights powered by AI
+                  </p>
+                </div>
               </div>
+
+              {/* Full width button */}
               <Button
                 onClick={handleWellnessAI}
-                className="bg-white text-indigo-500 hover:bg-white/90"
+                size="lg"
+                className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               >
-                <MessageSquare className="w-4 h-4 mr-2" />
+                <MessageSquare className="w-5 h-5 mr-2" />
                 Chat Now
               </Button>
-            </div>
+            </CardContent>
           </Card>
 
           <FitbitConnect />
 
-          {/* Health Score */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-semibold">Health Score</h2>
-            </div>
-            <Card
-              className="bg-white border shadow-sm p-4"
-              onClick={handleHealthScore}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-400 rounded-xl flex items-center justify-center text-white">
-                  <span className="text-2xl font-bold">{healthScore}</span>
-                </div>
-                <div>
-                  <h2 className="font-semibold">Metabolic Score</h2>
-                  <p className="text-sm text-gray-500">
-                    Based on your data, we think your health status is above
-                    average.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Smart Health Metrics */}
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Smart Health Metrics</h2>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <Card
-                onClick={handleHeartRate}
-                className="bg-blue-500 text-white border-0 p-3"
-              >
-                <h3 className="text-sm">Heart Rate</h3>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">
-                    {recentRestingHeartRate}
-                  </span>
-                  <span className="text-xs">BPM</span>
-                </div>
-                <div className="mt-2 h-8">
-                  <svg className="w-full h-full" viewBox="0 0 100 40">
-                    <path
-                      d="M0 20 L20 20 L30 5 L40 35 L50 20 L60 20 L70 5 L80 35 L90 20 L100 20"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
+          {/* Enhanced Health Overview Section */}
+          <Card className="shadow-xl border border-gray-200 rounded-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg p-6">
+              <CardTitle className="text-3xl font-bold">
+                Health Overview
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Track your daily health metrics and activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="metrics" className="w-full">
+                <TabsList className="flex justify-center gap-4 p-2 bg-gray-100 rounded-lg">
+                  <TabsTrigger
+                    value="metrics"
+                    className="px-4 py-2 rounded-lg text-lg font-semibold"
+                  >
+                    Health Metrics
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="activity"
+                    className="px-4 py-2 rounded-lg text-lg font-semibold"
+                  >
+                    Activity
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="metrics" className="p-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Heart Rate */}
+                    <MetricCard
+                      icon={Heart}
+                      title="Heart Rate"
+                      value={recentRestingHeartRate}
+                      unit="BPM"
+                      color="red"
+                      max={220}
                     />
-                  </svg>
-                </div>
-              </Card>
-
-              <Card className="bg-red-500 text-white border-0 p-3">
-                <h3 className="text-sm">Blood Sugar</h3>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">{randomBloodSugar}</span>
-                  <span className="text-xs">mg/dL</span>
-                </div>
-                <div className="mt-2 text-center bg-red-600/50 rounded-md py-1 text-xs">
-                  {randomBloodSugar > 140
-                    ? "High"
-                    : randomBloodSugar < 90
-                    ? "Low"
-                    : "Normal"}
-                </div>
-              </Card>
-
-              <Card className="bg-cyan-500 text-white border-0 p-3">
-                <h3 className="text-sm">Sleep</h3>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">
-                    {recentSleepDuration}
-                  </span>
-                  <span className="text-xs">hr</span>
-                </div>
-                <div className="flex justify-between mt-2 h-8 gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-2 bg-cyan-300 rounded-full"
-                      style={{ height: `${80 + i * 5}%` }}
-                    ></div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Activity Tracker */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-semibold">Fitness & Activity</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4 border bg-emerald-50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500 rounded-lg">
-                    <Activity className="w-5 h-5 text-white" />
+                    {/* Blood Sugar */}
+                    <MetricCard
+                      icon={Droplet}
+                      title="Blood Sugar"
+                      value={randomBloodSugar}
+                      unit="mg/dL"
+                      color="blue"
+                      max={200}
+                      badge={getBloodSugarBadge(randomBloodSugar)}
+                    />
+                    {/* Sleep */}
+                    <MetricCard
+                      icon={Moon}
+                      title="Sleep"
+                      value={recentSleepDuration}
+                      unit="hours"
+                      color="indigo"
+                      max={12}
+                    />
+                    {/* Health Score */}
+                    <MetricCard
+                      icon={Activity}
+                      title="Health Score"
+                      value={healthScore}
+                      color="green"
+                      max={100}
+                      onClick={handleHealthScore}
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Daily Steps</p>
-                    <p className="font-semibold">{recentDailySteps}</p>
+                </TabsContent>
+                <TabsContent value="activity" className="p-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Daily Steps */}
+                    <MetricCard
+                      icon={Footprints}
+                      title="Daily Steps"
+                      value={recentDailySteps}
+                      color="blue"
+                      max={10000}
+                    />
+                    {/* Active Minutes */}
+                    <MetricCard
+                      icon={Activity}
+                      title="Active Minutes"
+                      value={recentActiveMinutes}
+                      unit="min"
+                      color="green"
+                      max={60}
+                    />
+                    {/* Calories Burned */}
+                    <MetricCard
+                      icon={Flame}
+                      title="Calories Burned"
+                      value={caloriesBurned}
+                      color="orange"
+                      max={3000}
+                    />
                   </div>
-                </div>
-              </Card>
-              <Card className="p-4 border bg-orange-50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-500 rounded-lg">
-                    <Activity className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Active Minutes</p>
-                    <p className="font-semibold">{recentActiveMinutes} min</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
-          {/* Medications Section - Last item before navigation */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-semibold">Medications</h2>
+          {/* Enhanced Medications Section */}
+          <Card className="shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Medications</CardTitle>
+                <CardDescription>Track your daily medications</CardDescription>
+              </div>
               <Button
                 onClick={handleAddMeds}
                 variant="outline"
                 size="sm"
-                className="gap-1"
+                className="gap-2"
               >
                 <Plus className="w-4 h-4" /> Add Med
               </Button>
-            </div>
-
-            {/* ✅ Extract Medications Safely */}
-            {userData?.user?.userDetails?.medications?.length > 0 ? (
-              userData.user.userDetails.medications.map((med, index) => (
-                <Card key={med._id || index} className="p-4 border mb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Activity className="w-5 h-5 text-blue-500" />
-                      </div>
+            </CardHeader>
+            <CardContent>
+              {userData?.user?.userDetails?.medications?.length > 0 ? (
+                <div className="space-y-4">
+                  {userData.user.userDetails.medications.map((med, index) => (
+                    <div
+                      key={med._id || index}
+                      className="flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
                       <div>
-                        <h3 className="font-medium">{med.name}</h3>
+                        <h3 className="font-medium text-lg">{med.name}</h3>
                         <p className="text-sm text-gray-500">{med.category}</p>
                       </div>
+                      <Button
+                        onClick={() => handleRemoveMed(med)}
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-red-100 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => handleRemoveMed(med)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <X className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="p-4 border">
-                <p className="text-sm text-gray-500">No medications found</p>
-              </Card>
-            )}
-          </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">No medications found</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );

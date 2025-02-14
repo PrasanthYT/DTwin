@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,10 +13,6 @@ export default function SearchBox() {
 
   const API_KEY = "f0a387d9c1604a82af7ab6e765417a33";
   const API_URL = "https://api.spoonacular.com/food/ingredients/search";
-
-  // useEffect(() => {
-  //   fetchInitialFoods();
-  // }, []);
 
   const dummyFoods = [
     {
@@ -241,21 +237,22 @@ export default function SearchBox() {
       sugar: 4
     },
   ];
+
   const handleSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
-    
+
     try {
       const response = await axios.get(API_URL, {
         params: { query, number: 1, apiKey: API_KEY },
       });
-      
+
       if (response.data.results.length === 0) {
-        alert("No results found!");
+        toast.error("No results found!");
         setLoading(false);
         return;
       }
-      
+
       const foodItem = response.data.results[0];
       const nutritionResponse = await axios.get(
         `https://api.spoonacular.com/food/ingredients/${foodItem.id}/information`,
@@ -269,34 +266,18 @@ export default function SearchBox() {
           params: { apiKey: API_KEY },
         }
       );
-      setResults([
-        {
-          id: foodItem.id,
-          name: foodItem.name,
-          image: `https://spoonacular.com/cdn/ingredients_250x250/${foodItem.image}`,
-          calories: nutritionResponse.data.nutrition.nutrients.find((n) => n.name === "Calories")?.amount,
-          protein: nutritionResponse.data.nutrition.nutrients.find(
-            (n) => n.name === "Protein"
-          )?.amount,
-          carbs: nutritionResponse.data.nutrition.nutrients.find(
-            (n) => n.name === "Carbohydrates"
-          )?.amount,
-          fat: nutritionResponse.data.nutrition.nutrients.find(
-            (n) => n.name === "Fat"
-          )?.amount,
-          glycemicIndex: glycemicResponse.data.ingredients[0]?.glycemicIndex || "N/A",
-          glycemicLoad: glycemicResponse.data.ingredients[0]?.glycemicLoad || "N/A",
-        },
-      ]);
-      console.log({
+
+      const newFood = {
         id: foodItem.id,
         name: foodItem.name,
         image: `https://spoonacular.com/cdn/ingredients_250x250/${foodItem.image}`,
-        calories: nutritionResponse.data.nutrition.nutrients.find((n) => n.name === "Calories")?.amount,
+        calories: nutritionResponse.data.nutrition.nutrients.find(
+          (n) => n.name === "Calories"
+        )?.amount,
         protein: nutritionResponse.data.nutrition.nutrients.find(
           (n) => n.name === "Protein"
         )?.amount,
-        carbs: nutritionResponse.data.nutrition.nutrients.find(
+        carbohydrates: nutritionResponse.data.nutrition.nutrients.find(
           (n) => n.name === "Carbohydrates"
         )?.amount,
         fat: nutritionResponse.data.nutrition.nutrients.find(
@@ -304,29 +285,36 @@ export default function SearchBox() {
         )?.amount,
         glycemicIndex: glycemicResponse.data.ingredients[0]?.glycemicIndex || "N/A",
         glycemicLoad: glycemicResponse.data.ingredients[0]?.glycemicLoad || "N/A",
-        fiber: `${nutritionData.nutrition.nutrients.find(n => n.name === "Fiber")?.amount || 0}g`,
-        sugar: `${nutritionData.nutrition.nutrients.find(n => n.name === "Sugar")?.amount || 0}g`
-      },)
+        fiber: nutritionResponse.data.nutrition.nutrients.find(
+          (n) => n.name === "Fiber"
+        )?.amount || 0,
+        sugar: nutritionResponse.data.nutrition.nutrients.find(
+          (n) => n.name === "Sugar"
+        )?.amount || 0,
+      };
+
+      setResults([newFood]);
     } catch (error) {
       console.error("Error fetching food data:", error);
+      toast.error("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleFoodClick = (food) => {
-    navigate("/searchResults", { state: { ...food } });
+    navigate("/searchResults", { state: food });
   };
-  
-  const handleback = () => {
+
+  const handleBack = () => {
     navigate("/dashboard");
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-blue-600 p-4 rounded-b-3xl mb-4">
-        <header className="sticky top-0 right-0 z-10 bg-blue-600 text-white py-2.5 flex items-center justify-start gap-3 w-full">
-          <ChevronLeft onClick={() => navigate(-1)} className="w-10 h-8" />
+        <header className="sticky top-0 z-10 bg-blue-600 text-white py-2.5 flex items-center gap-3 w-full">
+          <ChevronLeft onClick={handleBack} className="w-10 h-8 cursor-pointer" />
           <h1 className="text-[1.5rem] font-semibold">Search</h1>
         </header>
         <div className="relative mt-1">
@@ -337,13 +325,15 @@ export default function SearchBox() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search for food..."
-            className="pl-9 bg-white w-full rounded-md border border-input px-3 py-2"
+            className="pl-9 bg-white w-full rounded-md border px-3 py-2"
           />
         </div>
       </div>
 
-      <div className="px-4 md:px-8 bg-grey-100">
-        <h2 className="text-lg font-semibold mb-4">{results.length} Results</h2>
+      <div className="px-4 md:px-8">
+        <h2 className="text-lg font-semibold mb-4">
+          {results.length + dummyFoods.length} Results
+        </h2>
 
         {loading && (
           <div className="flex justify-center py-8">
@@ -352,38 +342,23 @@ export default function SearchBox() {
         )}
 
         <div className="space-y-3">
-          {results.map((food, index) => (
-            <Card key={index} className="p-4" onClick={() => handleFoodClick(food)}>
+          {[...results, ...dummyFoods].map((food, index) => (
+            <Card key={index} className="p-4 cursor-pointer" onClick={() => handleFoodClick(food)}>
               <div className="flex items-center gap-4">
-                <img src={food.image} alt={food.name} className="w-24 h-24 rounded-lg object-cover" />
+                <img
+                  src={food.image}
+                  alt={food.name}
+                  className="w-24 h-24 rounded-lg object-cover"
+                />
                 <div className="flex-grow">
                   <h3 className="font-semibold text-lg">{food.name}</h3>
                   <p>Calories: {food.calories} kcal</p>
-                  <p>Carbs: {food.carbs} kcal</p>
+                  <p>Carbs: {food.carbohydrates} g</p>
                 </div>
-                <div className="flex items-center justify-center">
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </div>
               </div>
             </Card>
           ))}
-          {
-            dummyFoods.map((food, index) => (
-              <Card key={index} className="p-4" onClick={() => handleFoodClick(food)}>
-                <div className="flex gap-4">
-                  <img src={food.image} alt={food.name} className="w-24 h-24 rounded-lg object-cover" />
-                  <div className="flex-grow">
-                    <h3 className="font-semibold text-lg">{food.name}</h3>
-                    <p>Calories: {food.calories} kcal</p>
-                    <p>Carbs: {food.carbs} kcal</p>
-                  </div>
-                  <div className="flex items-center justify-center">
-                <ChevronRight className="h-7 w-7 text-muted-foreground" />
-                </div>
-                </div>
-              </Card>
-            ))
-          }
         </div>
       </div>
     </div>
