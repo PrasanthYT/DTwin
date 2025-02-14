@@ -31,6 +31,7 @@ import {
 import BottomNav from "../components/dashboard/bottom-nav";
 import FitbitConnect from "@/components/Fitbit/FitbitConnect";
 import { Separator } from "@/components/ui/separator";
+import Fitbit from "@/components/Fitbit/Fitbit";
 
 function MetricCard({
   icon: Icon,
@@ -326,7 +327,7 @@ const HealthDashboard = () => {
             </CardContent>
           </Card>
 
-          <FitbitConnect />
+          <Fitbit />
 
           {/* Enhanced Health Overview Section */}
           <Card className="shadow-xl border border-gray-200 rounded-lg">
