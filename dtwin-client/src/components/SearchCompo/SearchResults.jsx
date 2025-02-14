@@ -91,7 +91,7 @@ const SearchResults = () => {
     { name: "Fat", value: foodData.fat || 0, color: "#eab308" },
   ];
 
-  const totalCalories = foodData.calories;
+  const totalCalories = scaledFoodData.calories;
 
   const metabolicData = [
     { time: "Morning", level: 70 },
@@ -265,7 +265,7 @@ const SearchResults = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span>Carbohydrate (g)</span>
-              <span>{scaledFoodData.carbs}</span>
+              <span>{scaledFoodData.carbohydrates}</span>
             </div>
             <div className="flex justify-between text-gray-500">
               <span>Dietary fiber (g)</span>
