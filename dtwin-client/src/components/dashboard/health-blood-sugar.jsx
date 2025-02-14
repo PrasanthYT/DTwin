@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload } from 'lucide-react';
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Upload,
+  ArrowLeft,
+  MoreHorizontal,
+  Flame,
+  Activity,
+  HeartPulse,
+  LineChart,
+} from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import {
   ResponsiveContainer,
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   XAxis,
   Tooltip,
   ReferenceLine,
   Area,
-} from 'recharts';
+} from "recharts";
+import { Button } from "../ui/button";
 
 const GlucoseMonitor = () => {
   const [glucoseData, setGlucoseData] = useState([]);
@@ -20,166 +33,265 @@ const GlucoseMonitor = () => {
   const [fastingAverage, setFastingAverage] = useState(0);
   const [avgGlucose, setAvgGlucose] = useState(0);
   const [hba1c, setHba1c] = useState(0);
-  const [lastMeasurementTime, setLastMeasurementTime] = useState('');
-  const [selectedRange, setSelectedRange] = useState('Today');
+  const [lastMeasurementTime, setLastMeasurementTime] = useState("");
+  const [selectedRange, setSelectedRange] = useState("Today");
   const [latestDate, setLatestDate] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [fileUploaded, setFileUploaded] = useState(false);
+  const [fetchingData, setFetchingData] = useState(false);
 
-  const TARGET_MIN = 3.9;
-  const TARGET_MAX = 10.0;
+  const TARGET_MIN = 70;
+  const TARGET_MAX = 180;
 
-  const mgdLToMmol = (mgdL) => {
-    return (mgdL / 18).toFixed(1);
+  useEffect(() => {
+    const uploaded = localStorage.getItem("glucoseFileUploaded");
+    if (uploaded) {
+      setFileUploaded(true);
+      fetchGlucoseData(); // Fetch glucose data if uploaded before
+    }
+  }, []);
+
+  const fetchGlucoseData = async () => {
+    setFetchingData(true);
+    setError(null);
+
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found");
+
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken?.userId;
+      if (!userId) throw new Error("Invalid token: User ID not found");
+
+      const response = await axios.post(
+        "http://localhost:4200/api/glucose/get",
+        { userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const fetchedData = response.data.data.map((record) => ({
+        time: record.time,
+        fullDate: new Date(record.date),
+        dateString: record.date,
+        glucose: record.glucoseLevel,
+        highArea: record.glucoseLevel > TARGET_MAX ? record.glucoseLevel : null,
+        lowArea: record.glucoseLevel < TARGET_MIN ? record.glucoseLevel : null,
+        normalArea:
+          record.glucoseLevel >= TARGET_MIN && record.glucoseLevel <= TARGET_MAX
+            ? record.glucoseLevel
+            : null,
+      }));
+
+      setGlucoseData(fetchedData);
+      updateDisplayData(fetchedData, selectedRange, new Date());
+    } catch (error) {
+      console.error("❌ Error fetching glucose data:", error);
+      setError("Failed to load glucose data.");
+    } finally {
+      setFetchingData(false);
+    }
   };
 
-  const isInRange = (glucoseValue) => {
-    return glucoseValue >= TARGET_MIN && glucoseValue <= TARGET_MAX;
+  const mmolToMgDl = (mmol) => Math.round(mmol * 18);
+
+  const isInRange = (glucoseValue) =>
+    glucoseValue >= TARGET_MIN && glucoseValue <= TARGET_MAX;
+
+  const calculateHbA1c = (avgGlucose) =>
+    ((parseFloat(avgGlucose) + 46.7) / 28.7).toFixed(1);
+
+  const processGlucoseData = (fileContent) => {
+    try {
+      const lines = fileContent.split("\n").slice(1);
+      const processedData = [];
+      let maxDate = new Date(0);
+
+      lines.forEach((line) => {
+        if (!line.trim()) return;
+
+        const [id, timeStr, recordType, glucoseStr] = line.split("\t");
+        if (!timeStr || !glucoseStr) return;
+
+        const glucoseMmol = parseFloat(glucoseStr);
+        if (isNaN(glucoseMmol)) return;
+
+        const glucoseMgDl = mmolToMgDl(glucoseMmol);
+        const date = new Date(timeStr);
+        if (date > maxDate) maxDate = date;
+
+        processedData.push({
+          time: `${date.getHours()}:${date
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`,
+          fullDate: date,
+          dateString: date.toISOString().split("T")[0],
+          glucose: glucoseMgDl,
+          highArea: glucoseMgDl > TARGET_MAX_MGDL ? glucoseMgDl : null,
+          lowArea: glucoseMgDl < TARGET_MIN_MGDL ? glucoseMgDl : null,
+          normalArea:
+            glucoseMgDl >= TARGET_MIN_MGDL && glucoseMgDl <= TARGET_MAX_MGDL
+              ? glucoseMgDl
+              : null,
+        });
+      });
+
+      processedData.sort((a, b) => a.fullDate - b.fullDate);
+      return { processedData, maxDate };
+    } catch (error) {
+      console.error("Error processing glucose data:", error);
+      throw new Error("Failed to process glucose data");
+    }
   };
 
-  const calculateHbA1c = (avgGlucose) => {
-    return ((parseFloat(avgGlucose) + 2.59) / 1.59).toFixed(1);
-  };
-
-  // Colors for HbA1c text (ensure visibility on light pastel backgrounds)
   const getStatusColor = (hba1c) => {
-    if (hba1c < 5.7) return 'text-green-600';
-    if (hba1c < 6.5) return 'text-yellow-600';
-    return 'text-red-600';
+    if (hba1c < 5.7) return "text-green-600";
+    if (hba1c < 6.5) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getStatusText = (hba1c) => {
-    if (hba1c < 5.7) return 'Normal';
-    if (hba1c < 6.5) return 'Pre-diabetic';
-    return 'Diabetic';
+    if (hba1c < 5.7) return "Normal";
+    if (hba1c < 6.5) return "Pre-diabetic";
+    return "Diabetic";
   };
 
-  const processGlucoseData = (data) => {
-    const lines = data.split('\n').slice(1);
-    const processedData = [];
-    let maxDate = new Date(0);
+  const validateToken = () => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
 
-    lines.forEach((line) => {
-      if (!line.trim()) return;
+    const decodedToken = jwtDecode(token);
+    if (!decodedToken?.userId) {
+      throw new Error("Invalid token: User ID not found");
+    }
 
-      const [id, timeStr, recordType, glucoseStr] = line.split('\t');
-      if (!timeStr || !glucoseStr) return;
+    return { token, userId: decodedToken.userId };
+  };
 
-      const glucose = parseInt(glucoseStr);
-      if (isNaN(glucose)) return;
-
-      const date = new Date(timeStr);
-      if (date > maxDate) maxDate = date;
-
-      const glucoseMmol = parseFloat(mgdLToMmol(glucose));
-
-      processedData.push({
-        time: `${date.getHours()}:${date
-          .getMinutes()
-          .toString()
-          .padStart(2, '0')}`,
-        fullDate: date,
-        dateString: date.toISOString().split('T')[0],
-        glucose: glucoseMmol,
-        // For high range shading
-        highArea: glucoseMmol > TARGET_MAX ? glucoseMmol : null,
-        // For low range shading
-        lowArea: glucoseMmol < TARGET_MIN ? glucoseMmol : null,
-        // For normal range
-        normalArea:
-          glucoseMmol >= TARGET_MIN && glucoseMmol <= TARGET_MAX
-            ? glucoseMmol
-            : null,
-      });
-    });
-
-    processedData.sort((a, b) => a.fullDate - b.fullDate);
-    setLatestDate(maxDate);
-    setGlucoseData(processedData);
-    updateDisplayData(processedData, 'Today', maxDate);
+  const formatDataForAPI = (processedData) => {
+    return processedData.map((record) => ({
+      date: record.dateString,
+      time: record.time,
+      glucoseLevel: record.glucose,
+      status: isInRange(record.glucose) ? "In Range" : "Out of Range",
+    }));
   };
 
   const updateDisplayData = (data, range, lastDate) => {
     if (!lastDate || !data.length) return;
 
     const endDate = new Date(lastDate);
-    let startDate = new Date(lastDate);
+    const startDate = new Date(lastDate);
     let filteredData = [];
 
     switch (range) {
-      case 'Today':
+      case "Today":
         startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-        filteredData = data.filter((reading) => {
-          const readingDate = new Date(reading.fullDate);
-          return readingDate.toDateString() === lastDate.toDateString();
-        });
+        filteredData = data.filter(
+          (reading) =>
+            reading.fullDate.toDateString() === lastDate.toDateString()
+        );
         break;
-      case '7 days':
+      case "7 days":
         startDate.setDate(lastDate.getDate() - 6);
-        filteredData = data.filter((reading) => {
-          const readingDate = new Date(reading.fullDate);
-          return readingDate >= startDate && readingDate <= endDate;
-        });
+        filteredData = data.filter(
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
+        );
         break;
-      case 'Month':
+      case "Month":
         startDate.setMonth(lastDate.getMonth() - 1);
-        filteredData = data.filter((reading) => {
-          const readingDate = new Date(reading.fullDate);
-          return readingDate >= startDate && readingDate <= endDate;
-        });
+        filteredData = data.filter(
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
+        );
         break;
-      case 'Quarter':
+      case "Quarter":
         startDate.setMonth(lastDate.getMonth() - 3);
-        filteredData = data.filter((reading) => {
-          const readingDate = new Date(reading.fullDate);
-          return readingDate >= startDate && readingDate <= endDate;
-        });
+        filteredData = data.filter(
+          (reading) =>
+            reading.fullDate >= startDate && reading.fullDate <= endDate
+        );
         break;
-      default:
-        filteredData = data;
     }
 
     setDisplayData(filteredData);
-
-    if (filteredData.length > 0) {
-      const lastReading = filteredData[filteredData.length - 1];
-      setCurrentGlucose(lastReading.glucose);
-      setLastMeasurementTime(lastReading.time);
-
-      const inRange = filteredData.filter((r) => isInRange(r.glucose)).length;
-      setTimeInRange(Math.round((inRange / filteredData.length) * 100));
-
-      const fastingReadings = filteredData.filter(
-        (reading) => new Date(reading.fullDate).getHours() === 6
-      );
-      const fastingAvg =
-        fastingReadings.length > 0
-          ? fastingReadings.reduce((acc, curr) => acc + curr.glucose, 0) /
-            fastingReadings.length
-          : 0;
-      setFastingAverage(fastingAvg.toFixed(1));
-
-      const avg =
-        filteredData.reduce((acc, curr) => acc + curr.glucose, 0) /
-        filteredData.length;
-      setAvgGlucose(avg.toFixed(1));
-      setHba1c(calculateHbA1c(avg));
-    }
+    updateMetrics(filteredData);
   };
 
-  const handleFileUpload = (event) => {
+  const updateMetrics = (data) => {
+    if (data.length === 0) return;
+
+    const lastReading = data[data.length - 1];
+    setCurrentGlucose(lastReading.glucose);
+    setLastMeasurementTime(lastReading.time);
+
+    const inRange = data.filter((r) => isInRange(r.glucose)).length;
+    setTimeInRange(Math.round((inRange / data.length) * 100));
+
+    const fastingReadings = data.filter(
+      (reading) => new Date(reading.fullDate).getHours() === 6
+    );
+    const fastingAvg =
+      fastingReadings.length > 0
+        ? fastingReadings.reduce((acc, curr) => acc + curr.glucose, 0) /
+          fastingReadings.length
+        : 0;
+    setFastingAverage(fastingAvg.toFixed(1));
+
+    const avg = data.reduce((acc, curr) => acc + curr.glucose, 0) / data.length;
+    setAvgGlucose(avg.toFixed(1));
+    setHba1c(calculateHbA1c(avg));
+  };
+
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        processGlucoseData(e.target.result);
-      };
-      reader.readAsText(file);
-    }
-  };
+    if (!file) return;
 
-  const handleRangeChange = (range) => {
-    setSelectedRange(range);
-    updateDisplayData(glucoseData, range, latestDate);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Validate authentication
+      const { token, userId } = validateToken();
+
+      // Read and process file
+      const fileContent = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsText(file);
+      });
+
+      // Process data
+      const { processedData, maxDate } = processGlucoseData(fileContent);
+      if (processedData.length === 0) {
+        throw new Error("No valid glucose data found in file");
+      }
+
+      // Update state
+      setGlucoseData(processedData);
+      setLatestDate(maxDate);
+      updateDisplayData(processedData, selectedRange, maxDate);
+      setFileUploaded(true); // Set fileUploaded to true after successful upload
+
+      // Format and send data to API
+      const formattedData = formatDataForAPI(processedData);
+      await axios.post(
+        "http://localhost:4200/api/glucose/save",
+        { userId, glucoseRecords: formattedData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("✅ Glucose data saved successfully!");
+    } catch (error) {
+      console.error("Error in handleFileUpload:", error);
+      setError(error.message || "Failed to upload glucose data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const CustomTooltip = ({ active, payload }) => {
@@ -194,8 +306,8 @@ const GlucoseMonitor = () => {
           ).toLocaleDateString()}`}</p>
           <p className="text-xs">
             <span>{`Glucose: ${reading.glucose} mmol/L `}</span>
-            <span className={inRange ? 'text-green-600' : 'text-red-600'}>
-              ({inRange ? 'In Range' : 'Out of Range'})
+            <span className={inRange ? "text-green-600" : "text-red-600"}>
+              ({inRange ? "In Range" : "Out of Range"})
             </span>
           </p>
         </div>
@@ -205,192 +317,246 @@ const GlucoseMonitor = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen text-gray-800 py-6">
-      {/* Increased max-w for a wider layout */}
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Current Glucose + Tabs + Chart container */}
-        <div className="relative bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <div className="text-center mb-6">
-            <div className="text-5xl font-bold mb-2 text-gray-800">
-              {currentGlucose}
-            </div>
-            <div className="text-gray-500 font-medium">mmol/l</div>
-            <div className="text-gray-400 text-sm mt-1">
-              Last measurement, {lastMeasurementTime}
-            </div>
-          </div>
-
-          {/* Tabs (centered, 95% width) */}
-          <div className="w-[95%] mx-auto mb-6">
-            <Tabs defaultValue="Today" onValueChange={handleRangeChange}>
-              <TabsList className="flex justify-center gap-2">
-                <TabsTrigger
-                  value="Today"
-                  className="px-4 py-2 text-sm rounded-md
-                             data-[state=active]:bg-blue-500 data-[state=active]:text-white 
-                             bg-gray-100 hover:bg-gray-200 transition"
-                >
-                  Today
-                </TabsTrigger>
-                <TabsTrigger
-                  value="7 days"
-                  className="px-4 py-2 text-sm rounded-md
-                             data-[state=active]:bg-blue-500 data-[state=active]:text-white 
-                             bg-gray-100 hover:bg-gray-200 transition"
-                >
-                  7 days
-                </TabsTrigger>
-                <TabsTrigger
-                  value="Month"
-                  className="px-4 py-2 text-sm rounded-md
-                             data-[state=active]:bg-blue-500 data-[state=active]:text-white 
-                             bg-gray-100 hover:bg-gray-200 transition"
-                >
-                  Month
-                </TabsTrigger>
-                <TabsTrigger
-                  value="Quarter"
-                  className="px-4 py-2 text-sm rounded-md
-                             data-[state=active]:bg-blue-500 data-[state=active]:text-white 
-                             bg-gray-100 hover:bg-gray-200 transition"
-                >
-                  Quarter
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
-          {/* Chart (98% width, no Y-axis) */}
-          <div className="w-[98%] mx-auto h-64 bg-white rounded-xl relative overflow-hidden border border-gray-200">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={displayData}
-                margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-              >
-                <XAxis
-                  dataKey="time"
-                  tick={{ fontSize: 10, fill: '#6B7280' }}
-                  interval={Math.floor(displayData.length / 6)}
-                />
-                {/* No <YAxis /> here */}
-                <Tooltip content={<CustomTooltip />} />
-
-                {/* Reference Lines (still visible even without Y-axis) */}
-                <ReferenceLine
-                  y={TARGET_MAX}
-                  stroke="#9CA3AF"
-                  strokeDasharray="3 3"
-                  label={{
-                    value: 'High',
-                    position: 'right',
-                    fill: '#9CA3AF',
-                    fontSize: 10,
-                  }}
-                />
-                <ReferenceLine
-                  y={TARGET_MIN}
-                  stroke="#9CA3AF"
-                  strokeDasharray="3 3"
-                  label={{
-                    value: 'Low',
-                    position: 'right',
-                    fill: '#9CA3AF',
-                    fontSize: 10,
-                  }}
-                />
-
-                {/* High Range Area */}
-                <Area
-                  dataKey="highArea"
-                  stroke="none"
-                  fill="#FEE2E2"
-                  fillOpacity={0.5}
-                  baseValue={TARGET_MAX}
-                />
-
-                {/* Low Range Area */}
-                <Area
-                  dataKey="lowArea"
-                  stroke="none"
-                  fill="#FEE2E2"
-                  fillOpacity={0.5}
-                  baseValue={TARGET_MIN}
-                />
-
-                {/* Normal Range Area */}
-                <Area
-                  dataKey="normalArea"
-                  stroke="none"
-                  fill="#E8F5E9"
-                  fillOpacity={0.4}
-                />
-
-                {/* Main glucose line */}
-                <Line
-                  type="monotone"
-                  dataKey="glucose"
-                  stroke="#2563EB"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Upload button */}
-          <div className="absolute bottom-4 right-4">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                className="hidden"
-                accept=".txt"
-                onChange={handleFileUpload}
-              />
-              <div className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors duration-200 shadow-sm">
-                <Upload size={24} />
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Stats Cards (lighter, pastel gradients) */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Time in Range */}
-          <Card className="p-4 rounded-xl shadow-md bg-gradient-to-tr from-lime-100 to-lime-200 text-gray-800">
-            <div className="text-gray-700 text-sm font-medium mb-1">Time in range</div>
-            <div className="text-3xl font-bold">
-              {timeInRange}
-              <span className="text-xl">%</span>
-            </div>
-          </Card>
-
-          {/* Fasting Average */}
-          <Card className="p-4 rounded-xl shadow-md bg-gradient-to-tr from-sky-100 to-sky-200 text-gray-800">
-            <div className="text-gray-700 text-sm font-medium mb-1">Fasting Average</div>
-            <div className="text-3xl font-bold">
-              {fastingAverage}
-              <span className="text-xl"> mmol/l</span>
-            </div>
-          </Card>
-
-          {/* Avg glucose level */}
-          <Card className="p-4 rounded-xl shadow-md bg-gradient-to-tr from-rose-100 to-rose-200 text-gray-800">
-            <div className="text-gray-700 text-sm font-medium mb-1">Avg glucose level</div>
-            <div className="text-3xl font-bold">
-              {avgGlucose}
-              <span className="text-xl"> mmol/l</span>
-            </div>
-          </Card>
-
-          {/* Est. HbA1c */}
-          <Card className="p-4 rounded-xl shadow-md bg-gradient-to-tr from-pink-100 to-pink-200 text-gray-800">
-            <div className="text-gray-700 text-sm font-medium mb-1">Est. HbA1c</div>
-            <div className={`text-2xl font-bold ${getStatusColor(hba1c)}`}>
-              {hba1c}% - {getStatusText(hba1c)}
-            </div>
-          </Card>
-        </div>
+    <div className="max-w-md mx-auto bg-white min-h-screen px-4 py-6 space-y-6">
+      {/* 🔹 Navigation */}
+      <div className="flex items-center justify-between">
+        <Button variant="outline" size="icon" className="rounded-lg">
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold">Blood Sugar</h1>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="h-6 w-6" />
+        </Button>
       </div>
+
+      {/* 🔹 Main Card */}
+      <Card className="shadow-lg border border-gray-200 rounded-xl">
+        <CardContent className="p-6">
+          {!fileUploaded ? (
+            // **No Data Available**
+            <div className="text-center py-12">
+              <Upload className="mx-auto h-16 w-16 text-gray-400 animate-bounce mb-4" />
+              <p className="text-xl font-semibold">No Data Found</p>
+              <p className="text-sm text-gray-500 mb-6">
+                Upload a .txt file to start tracking
+              </p>
+              <label className="w-full block">
+                <input
+                  type="file"
+                  className="hidden"
+                  accept=".txt"
+                  onChange={handleFileUpload}
+                  disabled={isLoading}
+                />
+                <Button className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all">
+                  Upload File
+                </Button>
+              </label>
+            </div>
+          ) : (
+            // **Data Available**
+            <>
+              <div className="text-center mb-6">
+                <h2 className="text-6xl font-extrabold">
+                  {currentGlucose || "--"}
+                </h2>
+                <p className="text-gray-500 font-medium">mg/dL</p>
+                <p className="text-gray-400 text-sm mt-1">
+                  {lastMeasurementTime
+                    ? `Last measurement: ${lastMeasurementTime}`
+                    : "No data available"}
+                </p>
+              </div>
+
+              {/* 🔹 Tabs for Time Range */}
+              <Tabs
+                value={selectedRange}
+                onValueChange={(range) => {
+                  setSelectedRange(range);
+                  updateDisplayData(glucoseData, range, latestDate);
+                }}
+              >
+                <TabsList className="flex justify-center gap-2 bg-gray-100 p-1 rounded-lg">
+                  {["Today", "7 days", "Month", "Quarter"].map((range) => (
+                    <TabsTrigger
+                      key={range}
+                      value={range}
+                      className="px-4 py-2 text-sm rounded-md transition data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                    >
+                      {range}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {["Today", "7 days", "Month", "Quarter"].map((range) => (
+                  <TabsContent key={range} value={range}>
+                    <div className="w-full h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsLineChart
+                          data={displayData}
+                          margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+                        >
+                          <XAxis
+                            dataKey="time"
+                            tick={{ fontSize: 10, fill: "#6B7280" }}
+                          />
+                          <Tooltip content={<CustomTooltip />} />
+                          <ReferenceLine
+                            y={TARGET_MAX}
+                            stroke="#9CA3AF"
+                            strokeDasharray="3 3"
+                          />
+                          <ReferenceLine
+                            y={TARGET_MIN}
+                            stroke="#9CA3AF"
+                            strokeDasharray="3 3"
+                          />
+                          <Area
+                            dataKey="highArea"
+                            stroke="none"
+                            fill="#FEE2E2"
+                            fillOpacity={0.5}
+                          />
+                          <Area
+                            dataKey="lowArea"
+                            stroke="none"
+                            fill="#FEE2E2"
+                            fillOpacity={0.5}
+                          />
+                          <Area
+                            dataKey="normalArea"
+                            stroke="none"
+                            fill="#E8F5E9"
+                            fillOpacity={0.4}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="glucose"
+                            stroke="#2563EB"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </RechartsLineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 🔹 Full-Width Upload Button (Bottom Only After First Upload) */}
+      {fileUploaded && (
+        <label className="w-full block">
+          <input
+            type="file"
+            className="hidden"
+            accept=".txt"
+            onChange={handleFileUpload}
+            disabled={isLoading}
+          />
+          <Button className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all">
+            Upload New File
+          </Button>
+        </label>
+      )}
+
+      {/* 🔹 Stats Cards (Only Show If Data is Available) */}
+      {fileUploaded && glucoseData.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 🔥 Time in Range */}
+          <Card className="bg-green-50 shadow-md border border-green-200 rounded-xl relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium">
+                Time in Range
+              </CardTitle>
+              <Flame className="h-5 w-5 text-green-600 animate-pulse" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-extrabold text-green-700">
+                {timeInRange}%
+              </div>
+              <p className="text-xs text-gray-600">
+                of readings within target range
+              </p>
+              {/* 🔹 Progress Bar */}
+              <div className="mt-2 w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 transition-all"
+                  style={{ width: `${timeInRange}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 🩸 Fasting Average */}
+          <Card className="bg-blue-50 shadow-md border border-blue-200 rounded-xl relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium">Fasting Avg</CardTitle>
+              <Activity className="h-5 w-5 text-blue-600 animate-bounce" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-extrabold text-blue-700">
+                {fastingAverage} <span className="text-lg">mg/dL</span>
+              </div>
+              <p className="text-xs text-gray-600">Morning glucose levels</p>
+              {/* 🔹 Streak Indicator */}
+              <p className="mt-2 text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full w-fit">
+                🔥 7-day streak
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 📈 Average Glucose */}
+          <Card className="bg-purple-50 shadow-md border border-purple-200 rounded-xl relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium">Avg Glucose</CardTitle>
+              <LineChart className="h-5 w-5 text-purple-600 animate-wiggle" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-extrabold text-purple-700">
+                {avgGlucose} <span className="text-lg">mg/dL</span>
+              </div>
+              <p className="text-xs text-gray-600">Overall average level</p>
+              {/* 🔹 Trend Arrow */}
+              <p
+                className={`mt-2 text-xs font-medium px-2 py-1 rounded-full w-fit 
+          ${
+            avgGlucose < 6
+              ? "bg-green-200 text-green-700"
+              : "bg-red-200 text-red-700"
+          }`}
+              >
+                {avgGlucose < 6 ? "📉 Trending Down" : "📈 Slight Increase"}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ❤️ Estimated HbA1c */}
+          <Card className="bg-red-50 shadow-md border border-red-200 rounded-xl relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium">Est. HbA1c</CardTitle>
+              <HeartPulse className="h-5 w-5 text-red-600 animate-pulse" />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-3xl font-extrabold ${getStatusColor(hba1c)}`}
+              >
+                {hba1c}%
+              </div>
+              <p className={`text-xs ${getStatusColor(hba1c)}`}>
+                {getStatusText(hba1c)}
+              </p>
+              {/* 🔹 Goal Badge */}
+              <p className="mt-2 text-xs font-medium bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full w-fit">
+                🎯 Goal: Stay below 6.5%
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

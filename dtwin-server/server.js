@@ -10,6 +10,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fitbit = require("./routes/fitbitRoute");
 const foodLogRoute = require("./routes/foodLogRoute");
 const session = require("express-session");
+const glucoseRoutes = require("./routes/glucoseRoutes");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoute);
 app.use("/api/fitbit", fitbit);
 app.use("/api/foodlog", foodLogRoute);
+app.use("/api/glucose", glucoseRoutes);
 app.post("/api/speech/generate", async (req, res) => {
   try {
     const data = req.body;

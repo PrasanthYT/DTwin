@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card } from "@tremor/react";
-import { CheckCircle, Loader2, RefreshCcw } from "lucide-react";
+import { CheckCircle, Loader2, RefreshCcw, Link, Watch } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast"; // ✅ Toast for error messages
 
@@ -22,10 +22,9 @@ function Fitbit() {
   // ✅ Check if user is authenticated via session
   const checkSession = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:4200/api/fitbit/session",
-        { withCredentials: true }
-      );
+      const response = await axios.get("http://localhost:4200/api/fitbit/session", {
+        withCredentials: true,
+      });
 
       if (response.data.authenticated) {
         setIsAuthenticated(true);
@@ -58,10 +57,9 @@ function Fitbit() {
     setIsSyncing(true);
 
     try {
-      const response = await axios.get(
-        "http://localhost:4200/api/fitbit/data",
-        { withCredentials: true }
-      );
+      const response = await axios.get("http://localhost:4200/api/fitbit/data", {
+        withCredentials: true,
+      });
 
       setFitbitData(response.data);
       setIsAuthenticated(true);
@@ -106,62 +104,57 @@ function Fitbit() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <Card className="w-full max-w-md p-6 shadow-lg bg-white text-center">
-        {isAuthenticated ? (
-          <>
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              Fitbit Connected!
-            </h2>
-            <p className="text-gray-500 mt-2">
-              Your Fitbit data is now synced successfully.
-            </p>
-            <button
-              onClick={fetchFitbitData}
-              disabled={isSyncing}
-              className="w-full mt-4 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition"
-            >
-              {isSyncing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Syncing...
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="w-5 h-5 mr-2" />
-                  Sync Now
-                </>
-              )}
-            </button>
-          </>
-        ) : (
-          <>
-            <h2 className="text-xl font-semibold text-gray-800">
-              Connect Fitbit
-            </h2>
-            <p className="text-gray-500 mt-2">
-              Sync your health data by connecting your Fitbit account.
-            </p>
-            {error && <div className="text-red-500 mt-3">{error}</div>}
-            <button
-              onClick={handleAuth}
-              disabled={isLoading}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Connecting...
-                </>
-              ) : (
-                "Connect Fitbit"
-              )}
-            </button>
-          </>
-        )}
+      <Card className="relative bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-6 rounded-xl shadow-lg overflow-hidden w-full max-w-md">
+        {/* Background Waves */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 400 200">
+            <path
+              d="M0,100 C50,150 150,50 200,100 C250,150 350,50 400,100 V200 H0 Z"
+              fill="white"
+              opacity="0.3"
+            />
+          </svg>
+        </div>
+
+        {/* Main Content */}
+        <div className="relative space-y-6">
+          {/* Fitbit Icon & Status */}
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-3 rounded-full">
+              <Watch className="text-blue-500 w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="font-bold text-xl">Fitbit Sync</h3>
+              <p className="text-sm text-white/80">
+                {isAuthenticated ? "Connected & Synced" : "Not Connected"}
+              </p>
+            </div>
+          </div>
+
+          {/* Full-Width Connect / Sync Button */}
+          <button
+            onClick={isAuthenticated ? fetchFitbitData : handleAuth}
+            disabled={isLoading || isSyncing}
+            className="w-full bg-white text-blue-500 hover:bg-white/90 flex items-center justify-center gap-2 px-6 py-3 rounded-md shadow-md"
+          >
+            {isLoading || isSyncing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />{" "}
+                {isAuthenticated ? "Syncing..." : "Connecting..."}
+              </>
+            ) : (
+              <>
+                {isAuthenticated ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <Link className="w-5 h-5" />
+                )}
+                {isAuthenticated ? "Sync Now" : "Connect Fitbit"}
+              </>
+            )}
+          </button>
+        </div>
       </Card>
-    </div>
   );
 }
 
