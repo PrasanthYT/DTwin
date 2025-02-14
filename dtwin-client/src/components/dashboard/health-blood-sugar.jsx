@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -12,7 +10,7 @@ import {
   HeartPulse,
   LineChart,
 } from "lucide-react";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import axios from "axios";
 import {
   ResponsiveContainer,
@@ -26,6 +24,7 @@ import {
 import { Button } from "../ui/button";
 
 const GlucoseMonitor = () => {
+  const fileInputRef = useRef(null);
   const [glucoseData, setGlucoseData] = useState([]);
   const [displayData, setDisplayData] = useState([]);
   const [currentGlucose, setCurrentGlucose] = useState(0);
@@ -41,6 +40,7 @@ const GlucoseMonitor = () => {
   const [fileUploaded, setFileUploaded] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
 
+  // Define target values in mg/dL
   const TARGET_MIN = 70;
   const TARGET_MAX = 180;
 
@@ -48,14 +48,13 @@ const GlucoseMonitor = () => {
     const uploaded = localStorage.getItem("glucoseFileUploaded");
     if (uploaded) {
       setFileUploaded(true);
-      fetchGlucoseData(); // Fetch glucose data if uploaded before
+      fetchGlucoseData(); // Fetch previously uploaded data
     }
   }, []);
 
   const fetchGlucoseData = async () => {
     setFetchingData(true);
     setError(null);
-
     try {
       const token = sessionStorage.getItem("token");
       if (!token) throw new Error("No authentication token found");
@@ -93,30 +92,41 @@ const GlucoseMonitor = () => {
     }
   };
 
+  // Convert mmol/L to mg/dL
   const mmolToMgDl = (mmol) => Math.round(mmol * 18);
 
+  // Checks whether a glucose value is within the target range
   const isInRange = (glucoseValue) =>
     glucoseValue >= TARGET_MIN && glucoseValue <= TARGET_MAX;
 
+  // Calculate estimated HbA1c from average glucose
   const calculateHbA1c = (avgGlucose) =>
     ((parseFloat(avgGlucose) + 46.7) / 28.7).toFixed(1);
 
+  // Process the TXT file data
   const processGlucoseData = (fileContent) => {
     try {
+      // Skip the header line if present
       const lines = fileContent.split("\n").slice(1);
       const processedData = [];
       let maxDate = new Date(0);
 
       lines.forEach((line) => {
         if (!line.trim()) return;
-
         const [id, timeStr, recordType, glucoseStr] = line.split("\t");
         if (!timeStr || !glucoseStr) return;
 
-        const glucoseMmol = parseFloat(glucoseStr);
-        if (isNaN(glucoseMmol)) return;
+        // Parse the glucose value.
+        // If the value is less than 20, assume it’s in mmol/L and convert it.
+        const rawGlucose = parseFloat(glucoseStr);
+        if (isNaN(rawGlucose)) return;
+        let glucoseMgDl = rawGlucose;
+        if (rawGlucose < 20) {
+          glucoseMgDl = mmolToMgDl(rawGlucose);
+        }
 
-        const glucoseMgDl = mmolToMgDl(glucoseMmol);
+        // Parse the date.
+        // The file date format is "YYYY/MM/DD HH:mm"
         const date = new Date(timeStr);
         if (date > maxDate) maxDate = date;
 
@@ -128,10 +138,10 @@ const GlucoseMonitor = () => {
           fullDate: date,
           dateString: date.toISOString().split("T")[0],
           glucose: glucoseMgDl,
-          highArea: glucoseMgDl > TARGET_MAX_MGDL ? glucoseMgDl : null,
-          lowArea: glucoseMgDl < TARGET_MIN_MGDL ? glucoseMgDl : null,
+          highArea: glucoseMgDl > TARGET_MAX ? glucoseMgDl : null,
+          lowArea: glucoseMgDl < TARGET_MIN ? glucoseMgDl : null,
           normalArea:
-            glucoseMgDl >= TARGET_MIN_MGDL && glucoseMgDl <= TARGET_MAX_MGDL
+            glucoseMgDl >= TARGET_MIN && glucoseMgDl <= TARGET_MAX
               ? glucoseMgDl
               : null,
         });
@@ -162,12 +172,10 @@ const GlucoseMonitor = () => {
     if (!token) {
       throw new Error("No authentication token found");
     }
-
     const decodedToken = jwtDecode(token);
     if (!decodedToken?.userId) {
       throw new Error("Invalid token: User ID not found");
     }
-
     return { token, userId: decodedToken.userId };
   };
 
@@ -180,9 +188,9 @@ const GlucoseMonitor = () => {
     }));
   };
 
+  // Filter data by the selected time range and update metrics
   const updateDisplayData = (data, range, lastDate) => {
     if (!lastDate || !data.length) return;
-
     const endDate = new Date(lastDate);
     const startDate = new Date(lastDate);
     let filteredData = [];
@@ -191,47 +199,46 @@ const GlucoseMonitor = () => {
       case "Today":
         startDate.setHours(0, 0, 0, 0);
         filteredData = data.filter(
-          (reading) =>
-            reading.fullDate.toDateString() === lastDate.toDateString()
+          (reading) => reading.fullDate.toDateString() === lastDate.toDateString()
         );
         break;
       case "7 days":
         startDate.setDate(lastDate.getDate() - 6);
         filteredData = data.filter(
-          (reading) =>
-            reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
       case "Month":
         startDate.setMonth(lastDate.getMonth() - 1);
         filteredData = data.filter(
-          (reading) =>
-            reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
       case "Quarter":
         startDate.setMonth(lastDate.getMonth() - 3);
         filteredData = data.filter(
-          (reading) =>
-            reading.fullDate >= startDate && reading.fullDate <= endDate
+          (reading) => reading.fullDate >= startDate && reading.fullDate <= endDate
         );
         break;
+      default:
+        filteredData = data;
     }
 
     setDisplayData(filteredData);
     updateMetrics(filteredData);
   };
 
+  // Update current glucose, time in range, averages, and HbA1c
   const updateMetrics = (data) => {
     if (data.length === 0) return;
-
     const lastReading = data[data.length - 1];
     setCurrentGlucose(lastReading.glucose);
     setLastMeasurementTime(lastReading.time);
 
-    const inRange = data.filter((r) => isInRange(r.glucose)).length;
-    setTimeInRange(Math.round((inRange / data.length) * 100));
+    const inRangeCount = data.filter((r) => isInRange(r.glucose)).length;
+    setTimeInRange(Math.round((inRangeCount / data.length) * 100));
 
+    // Fasting average – assuming readings at 6 AM are fasting readings
     const fastingReadings = data.filter(
       (reading) => new Date(reading.fullDate).getHours() === 6
     );
@@ -242,15 +249,17 @@ const GlucoseMonitor = () => {
         : 0;
     setFastingAverage(fastingAvg.toFixed(1));
 
-    const avg = data.reduce((acc, curr) => acc + curr.glucose, 0) / data.length;
+    const avg =
+      data.reduce((acc, curr) => acc + curr.glucose, 0) / data.length;
     setAvgGlucose(avg.toFixed(1));
     setHba1c(calculateHbA1c(avg));
   };
 
+  // Handle file upload via the hidden input
   const handleFileUpload = async (event) => {
+    console.log("File upload triggered", event);
     const file = event.target.files[0];
     if (!file) return;
-
     setIsLoading(true);
     setError(null);
 
@@ -265,19 +274,20 @@ const GlucoseMonitor = () => {
         reader.readAsText(file);
       });
 
-      // Process data
+      // Process data from file content
       const { processedData, maxDate } = processGlucoseData(fileContent);
       if (processedData.length === 0) {
         throw new Error("No valid glucose data found in file");
       }
 
-      // Update state
+      // Update state with new data
       setGlucoseData(processedData);
       setLatestDate(maxDate);
       updateDisplayData(processedData, selectedRange, maxDate);
-      setFileUploaded(true); // Set fileUploaded to true after successful upload
+      setFileUploaded(true);
+      localStorage.setItem("glucoseFileUploaded", "true");
 
-      // Format and send data to API
+      // Format data and send to API
       const formattedData = formatDataForAPI(processedData);
       await axios.post(
         "http://localhost:4200/api/glucose/save",
@@ -294,6 +304,7 @@ const GlucoseMonitor = () => {
     }
   };
 
+  // Custom tooltip for the chart
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const reading = payload[0].payload;
@@ -305,7 +316,7 @@ const GlucoseMonitor = () => {
             reading.fullDate
           ).toLocaleDateString()}`}</p>
           <p className="text-xs">
-            <span>{`Glucose: ${reading.glucose} mmol/L `}</span>
+            <span>{`Glucose: ${reading.glucose} mg/dL `}</span>
             <span className={inRange ? "text-green-600" : "text-red-600"}>
               ({inRange ? "In Range" : "Out of Range"})
             </span>
@@ -318,7 +329,7 @@ const GlucoseMonitor = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen px-4 py-6 space-y-6">
-      {/* 🔹 Navigation */}
+      {/* Navigation */}
       <div className="flex items-center justify-between">
         <Button variant="outline" size="icon" className="rounded-lg">
           <ArrowLeft className="h-6 w-6" />
@@ -329,32 +340,34 @@ const GlucoseMonitor = () => {
         </Button>
       </div>
 
-      {/* 🔹 Main Card */}
+      {/* Main Card */}
       <Card className="shadow-lg border border-gray-200 rounded-xl">
         <CardContent className="p-6">
           {!fileUploaded ? (
-            // **No Data Available**
+            // No Data Available – prompt to upload a file
             <div className="text-center py-12">
               <Upload className="mx-auto h-16 w-16 text-gray-400 animate-bounce mb-4" />
               <p className="text-xl font-semibold">No Data Found</p>
               <p className="text-sm text-gray-500 mb-6">
                 Upload a .txt file to start tracking
               </p>
-              <label className="w-full block">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".txt"
-                  onChange={handleFileUpload}
-                  disabled={isLoading}
-                />
-                <Button className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all">
-                  Upload File
-                </Button>
-              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".txt"
+                onChange={handleFileUpload}
+                disabled={isLoading}
+              />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all"
+              >
+                Upload File
+              </Button>
             </div>
           ) : (
-            // **Data Available**
+            // Data Available – show current reading and graph
             <>
               <div className="text-center mb-6">
                 <h2 className="text-6xl font-extrabold">
@@ -368,7 +381,7 @@ const GlucoseMonitor = () => {
                 </p>
               </div>
 
-              {/* 🔹 Tabs for Time Range */}
+              {/* Tabs for Time Range */}
               <Tabs
                 value={selectedRange}
                 onValueChange={(range) => {
@@ -401,6 +414,7 @@ const GlucoseMonitor = () => {
                             tick={{ fontSize: 10, fill: "#6B7280" }}
                           />
                           <Tooltip content={<CustomTooltip />} />
+                          {/* Threshold Lines */}
                           <ReferenceLine
                             y={TARGET_MAX}
                             stroke="#9CA3AF"
@@ -447,26 +461,30 @@ const GlucoseMonitor = () => {
         </CardContent>
       </Card>
 
-      {/* 🔹 Full-Width Upload Button (Bottom Only After First Upload) */}
+      {/* Full-Width Upload Button (Bottom, shown after first upload) */}
       {fileUploaded && (
-        <label className="w-full block">
+        <>
           <input
+            ref={fileInputRef}
             type="file"
             className="hidden"
             accept=".txt"
             onChange={handleFileUpload}
             disabled={isLoading}
           />
-          <Button className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all">
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-medium rounded-lg shadow-md transition-all"
+          >
             Upload New File
           </Button>
-        </label>
+        </>
       )}
 
-      {/* 🔹 Stats Cards (Only Show If Data is Available) */}
+      {/* Stats Cards – only shown if data is available */}
       {fileUploaded && glucoseData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* 🔥 Time in Range */}
+          {/* Time in Range */}
           <Card className="bg-green-50 shadow-md border border-green-200 rounded-xl relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">
@@ -481,7 +499,6 @@ const GlucoseMonitor = () => {
               <p className="text-xs text-gray-600">
                 of readings within target range
               </p>
-              {/* 🔹 Progress Bar */}
               <div className="mt-2 w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 transition-all"
@@ -491,7 +508,7 @@ const GlucoseMonitor = () => {
             </CardContent>
           </Card>
 
-          {/* 🩸 Fasting Average */}
+          {/* Fasting Average */}
           <Card className="bg-blue-50 shadow-md border border-blue-200 rounded-xl relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Fasting Avg</CardTitle>
@@ -502,14 +519,13 @@ const GlucoseMonitor = () => {
                 {fastingAverage} <span className="text-lg">mg/dL</span>
               </div>
               <p className="text-xs text-gray-600">Morning glucose levels</p>
-              {/* 🔹 Streak Indicator */}
               <p className="mt-2 text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full w-fit">
                 🔥 7-day streak
               </p>
             </CardContent>
           </Card>
 
-          {/* 📈 Average Glucose */}
+          {/* Average Glucose */}
           <Card className="bg-purple-50 shadow-md border border-purple-200 rounded-xl relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Avg Glucose</CardTitle>
@@ -520,36 +536,31 @@ const GlucoseMonitor = () => {
                 {avgGlucose} <span className="text-lg">mg/dL</span>
               </div>
               <p className="text-xs text-gray-600">Overall average level</p>
-              {/* 🔹 Trend Arrow */}
               <p
-                className={`mt-2 text-xs font-medium px-2 py-1 rounded-full w-fit 
-          ${
-            avgGlucose < 6
-              ? "bg-green-200 text-green-700"
-              : "bg-red-200 text-red-700"
-          }`}
+                className={`mt-2 text-xs font-medium px-2 py-1 rounded-full w-fit ${
+                  avgGlucose < 6
+                    ? "bg-green-200 text-green-700"
+                    : "bg-red-200 text-red-700"
+                }`}
               >
                 {avgGlucose < 6 ? "📉 Trending Down" : "📈 Slight Increase"}
               </p>
             </CardContent>
           </Card>
 
-          {/* ❤️ Estimated HbA1c */}
+          {/* Estimated HbA1c */}
           <Card className="bg-red-50 shadow-md border border-red-200 rounded-xl relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Est. HbA1c</CardTitle>
               <HeartPulse className="h-5 w-5 text-red-600 animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div
-                className={`text-3xl font-extrabold ${getStatusColor(hba1c)}`}
-              >
+              <div className={`text-3xl font-extrabold ${getStatusColor(hba1c)}`}>
                 {hba1c}%
               </div>
               <p className={`text-xs ${getStatusColor(hba1c)}`}>
                 {getStatusText(hba1c)}
               </p>
-              {/* 🔹 Goal Badge */}
               <p className="mt-2 text-xs font-medium bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full w-fit">
                 🎯 Goal: Stay below 6.5%
               </p>
