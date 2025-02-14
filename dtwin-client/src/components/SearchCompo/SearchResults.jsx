@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, FolderCog } from "lucide-react";
 import { PieChart, Pie, Cell } from "recharts";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -29,7 +29,7 @@ if (!foodData) {
   }, [foodData]);
 
     const nutritionData = [
-      { name: "Carbohydrate", value: parseFloat(foodData.carbohydrates) || 0, color: "#9333ea" },
+      { name: "Carbohydrate", value: parseFloat(foodData.carbs) || 0, color: "#9333ea" },
       { name: "Protein", value: parseFloat(foodData.protein) || 0, color: "#ef4444" },
       { name: "Fat", value: parseFloat(foodData.fat) || 0, color: "#eab308" }
     ];
@@ -46,7 +46,8 @@ if (!foodData) {
   const handleAddFood = async () => {
   try {
     // Get token from local storage (or context if you're using React state management)
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
+    console.log(token)
 
     if (!token) {
       alert("User not authenticated!");
@@ -56,16 +57,30 @@ if (!foodData) {
     // Decode the token to extract the user ID
     const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decoding JWT payload
     const userId = decodedToken.userId; // Extract userId from JWT payload
-
+    console.log({name: foodData.name,
+      calories: foodData.calories,
+      carbohydrates: foodData.carbs,
+      protein: foodData.protein,
+      glycemicIndex: foodData.glycemicIndex,
+      glycemicLoad: foodData.glycemicLoad,
+      fiber :foodData.fiber,
+      sugar: foodData.sugar,
+      // fat: foodData.fat,
+      quantity: 100,})
+    console.log(decodedToken)
     const response = await axios.post(
       "http://localhost:4200/api/food/add",
       {
         userId,
         name: foodData.name,
         calories: foodData.calories,
-        carbohydrates: foodData.carbohydrates,
+        carbohydrates: foodData.carbs,
         protein: foodData.protein,
-        fat: foodData.fat,
+        glycemicIndex: foodData.glycemicIndex,
+        glycemicLoad: foodData.glycemicLoad,
+        fiber :foodData.fiber,
+        sugar: foodData.sugar,
+        // fat: foodData.fat,
         quantity: 100,
       },
       {
@@ -81,19 +96,27 @@ if (!foodData) {
 };
 
   return (
-    <div className="max-w-md mx-auto bg-white">
-      <div className="relative h-48">
-        <img src={foodData.image} alt={foodData.name} className="w-full h-full object-cover rounded-t-lg" />
-        <button className="absolute top-4 left-4 text-white" onClick={handleBack}>
-          <ChevronLeft size={24} className="text-white" />
-        </button>
-      </div>
+      <div className="max-w-md mx-auto bg-white">
+  <div className="relative h-48 rounded-b-2xl">
+    {/* Image with gradient overlay */}
+    <div className="absolute inset-0 bg-gradient-to-b from-black/75 to-transparent "></div>
+    <img src={foodData.image} alt={foodData.name} className="w-full h-full rounded-b-[30px] object-cover " />
+
+    {/* Back button and name */}
+    <div className="absolute top-4 left-4 flex items-center space-x-2">
+      <button className="text-white" onClick={handleBack}>
+        <ChevronLeft size={24} className="text-white" />
+      </button>
+      <span className="text-white font-semibold text-lg">{foodData.name}</span>
+    </div>
+  </div>
 
       <Card className="border-0 rounded shadow-none">
-        <CardContent className="p-5 border-t-2 rounded-t-xl z-10">
+        <CardContent className="p-5  rounded-t-xl z-10">
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-semibold">{foodData.name}</h2>
+              {foodData.reason && <p className="text-gray-500">{foodData.reason}</p>}
               <p className="text-gray-500">100.00gm | {foodData.calories} cal</p>
             </div>
 
@@ -142,7 +165,7 @@ if (!foodData) {
               <div className="mt-6 space-y-3">
                 <div className="flex justify-between">
                   <span>Carbohydrate (g)</span>
-                  <span>{foodData.carbohydrates}</span>
+                  <span>{foodData.carbs}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
                   <span>Dietary fiber (g)</span>
@@ -150,7 +173,7 @@ if (!foodData) {
                 </div>
                 <div className="flex justify-between text-gray-500">
                   <span>Sugars (g)</span>
-                  <span>{foodData.sugars || "N/A"}</span>
+                  <span>{foodData.sugar || "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Protein (g)</span>

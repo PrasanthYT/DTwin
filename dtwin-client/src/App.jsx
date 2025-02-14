@@ -32,6 +32,7 @@ import AddMeds from "./components/onboarding/health-addmeds";
 import SplashScreen from "./components/onboarding/SplashScreen";
 import PrivateRoute from "./PrivateRoute";
 import Settings from "./components/dashboard/settings";
+import FoodAlternatives from "./components/SearchCompo/alternativeFood";
 
 // ✅ PublicRoute to prevent signed-in users from accessing auth pages
 const PublicRoute = ({ children }) => {
@@ -258,6 +259,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <AddMeds />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/alternativeFood"
+          element={
+            <PrivateRoute>
+              <FoodAlternatives />
             </PrivateRoute>
           }
         />
