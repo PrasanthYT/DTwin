@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  GoogleGenerativeAI,
+} from "@google/generative-ai";
+
+// import SugarSpikeAnalyzer from "../ai/SugarspikeAnalyzier";
+import {
   ChevronLeft,
   FolderCog,
   Plus,
@@ -42,6 +47,24 @@ const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(100);
+  const selected_Food = localStorage.getItem("selectedFood");
+  const [sugarspike, setSugarspike] = useState();
+  const apiKey = "AIzaSyDK1ktNxAi5UPMZSSivCJcXxFjyxz483gA";
+  const genAI = new GoogleGenerativeAI(apiKey);
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    systemInstruction:
+      '    systemInstruction: "The AI should analyze the user\'s meal data and predict the expected glucose spike in mg/dL within 60 minutes.\\n\\nInput Data:\\nThe AI will receive JSON input containing meal details, including:\\n- Dish Name: The name of the food item consumed.\\n- Quantity: The amount of the food item in grams or milliliters.\\n- Glycemic Index (GI): The food’s GI value.\\n- Glycemic Load (GL): The food’s GL value.\\n- Pre-meal Glucose Level (Optional): The user’s glucose level before eating.\\n\\nOutput Format:\\nThe AI must return a JSON response containing:\\n- glucoseSpike: A numerical value representing the predicted glucose spike in mg/dL.\\n\\nProcessing Rules:\\n- The prediction should be based on scientific research on GI, GL, and meal absorption rates.\\n- If pre-meal glucose data is provided, adjust the prediction dynamically based on the expected body response.\\n- The response must be a valid JSON object containing only the glucose spike value.\\n\\nExample JSON Response:\\n{\\n  \\"glucoseSpike\\": 45\\n}\\n\\nIntegration Notes:\\n- The AI should provide only the numerical glucose spike prediction, with no additional text or recommendations.\\n- The response format should always be strictly JSON.\\n- The model should use structured calculations based on meal data and past research.\\n",\n',
+  });
+
+  const generationConfig = {
+    temperature: 0.35,
+    topP: 0.95,
+    topK: 40,
+    maxOutputTokens: 8192,
+    responseMimeType: "text/plain",
+  };
 
   const [foodData, setFoodData] = useState(
     location.state ||
@@ -59,12 +82,64 @@ const SearchResults = () => {
         sugar: 14,
       }
   );
+  const mealInput = {
+    dishName: foodData.name,
+    quantity: 250,
+    glycemicIndex: foodData.glycemicIndex,
+    glycemicLoad: foodData.glycemicLoad,
+    preMealGlucose: 90,
+  };
+  async function SugarSpikeAnalyzer() {
+    const chatSession = model.startChat({
+      generationConfig,
+      history: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: 'dishName\n: \n"Paneer Butter Masala"\nglycemicIndex\n: \n55\nglycemicLoad\n: \n8\npreMealGlucose\n: \n90\nquantity\n: \n2',
+            },
+          ],
+        },
+        {
+          role: "model",
+          parts: [{ text: '```json\n{\n  "glucoseSpike": 38\n}\n```\n' }],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              text: 'dishName\n:\n"Paneer Butter Masala"\nglycemicIndex\n:\n55\nglycemicLoad\n:\n8\npreMealGlucose\n:\n90\nquantity\n:\n2',
+            },
+          ],
+        },
+        {
+          role: "model",
+          parts: [{ text: '```json\n{\n  "glucoseSpike": 38\n}\n```' }],
+        },
+      ],
+    });
+
+    const result = await chatSession.sendMessage(JSON.stringify(mealInput));
+    let responseText = result.response.text();
+    responseText = responseText.replace(/```json|```/g, "").trim();
+
+    try {
+      let parsedResponse = JSON.parse(responseText);
+      let glucoseSpike = parsedResponse.glucoseSpike;
+      setSugarspike(glucoseSpike);
+      console.log(glucoseSpike); // This will print 52
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+    }
+  }
 
   useEffect(() => {
     if (!foodData) {
       navigate("/search");
     } else {
       localStorage.setItem("selectedFood", JSON.stringify(foodData));
+      SugarSpikeAnalyzer(mealInput);
     }
   }, [foodData]);
 
@@ -110,7 +185,7 @@ const SearchResults = () => {
   }
 
   // Example usage
-  const metabolicScore = calculateMetabolicScore(2000, 50, 90, 80, 600);
+  const metabolicScore = calculateMetabolicScore(2000, 50, 90, 80, 600); 
 
   const metabolicData = [
     { time: "Morning", level: 70 },
@@ -175,7 +250,7 @@ const SearchResults = () => {
   );
 
   const SugarSpikeIndicator = ({ currentValue, baselineValue }) => {
-    const difference = currentValue - baselineValue;
+    const difference = sugarspike;
     return (
       <Badge
         variant={difference >= 0 ? "success" : "destructive"}

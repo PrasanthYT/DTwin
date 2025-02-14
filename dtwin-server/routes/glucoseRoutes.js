@@ -8,6 +8,6 @@ const router = express.Router();
 router.post("/save", authMiddleware, saveGlucoseData);
 
 // ✅ Get glucose data for a user
-router.get("/get", authMiddleware, getGlucoseData);
+router.get("/get",  authMiddleware, getGlucoseData);
 
 module.exports = router;
