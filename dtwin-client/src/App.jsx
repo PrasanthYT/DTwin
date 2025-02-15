@@ -35,6 +35,7 @@ import Settings from "./components/dashboard/settings";
 import FoodAlternatives from "./components/SearchCompo/alternativeFood";
 import HealthBloodSugar from "./components/dashboard/health-blood-sugar";
 import GlucoseMonitor from "./components/dashboard/health-blood-sugar";
+import BodySimulator from "./pages/Simulation";
 
 // ✅ PublicRoute to prevent signed-in users from accessing auth pages
 const PublicRoute = ({ children }) => {
@@ -277,6 +278,14 @@ const App = () => {
           element={
             <PrivateRoute>
               <HealthBloodSugar />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/simulation"
+          element={
+            <PrivateRoute>
+              <BodySimulator />
             </PrivateRoute>
           }
         />
