@@ -23,33 +23,41 @@ const HealthScore = () => {
   const fetchHealthData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-
+  
       // Fetch User Health Score
       const userResponse = await axios.get("http://localhost:4200/api/auth/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       const healthScore = userResponse.data?.user?.healthData?.healthScore || "--";
-
+  
       // Fetch Fitbit Data
       const fitbitResponse = await axios.get("http://localhost:4200/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       if (fitbitResponse.status === 200) {
         const weeklyData = fitbitResponse.data?.data?.weeklyData || [];
-        const latestData = weeklyData.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
+        const latestData = weeklyData.length ? weeklyData[0] : null; // Get latest entry
+  
         if (latestData) {
-          const restingHeartRate = latestData?.heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate || "--";
-          const steps = latestData?.activity?.summary?.steps || "--";
-          const sleepDuration = latestData?.sleep?.duration ? Math.round(latestData.sleep.duration / (1000 * 60 * 60)) : "--";
-
+          const activitySummary = latestData?.activity?.summary || {};
+          const restingHeartRate = activitySummary.restingHeartRate || "--";
+          const steps = activitySummary.steps || "--";
+          const caloriesOut = activitySummary.caloriesOut || "--"; // Added Calories Out
+  
+          // ✅ Extract Sleep Duration (Convert ms to hours)
+          const sleepRecords = latestData?.sleep?.sleepRecords || [];
+          const sleepDuration = sleepRecords.length > 0
+            ? Math.round(sleepRecords.reduce((sum, record) => sum + record.duration, 0) / (1000 * 60 * 60))
+            : "--";
+  
           setHealthData({
             score: healthScore,
             heartRate: restingHeartRate,
             steps,
             sleep: sleepDuration,
+            caloriesOut, // ✅ Display Calories Burned
           });
         }
       }
@@ -57,9 +65,10 @@ const HealthScore = () => {
       console.error("❌ Error fetching health data:", error);
     }
   };
+  
 
   const handleback = () => {
-    navigate(-1);
+    navigate("/dashboard");
   };
 
   return (
