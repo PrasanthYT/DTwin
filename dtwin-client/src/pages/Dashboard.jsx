@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/dashboard/bottom-nav";
 import axios from "axios";
 import Fitbit from "@/components/Fitbit/Fitbit";
+import ModelVisualizationCard from "@/components/dashboard/health-threeD-twin";
+import HealthSimulation from "@/components/dashboard/health-simulation";
 
 const HealthDashboard = () => {
   const navigate = useNavigate();
@@ -282,9 +284,7 @@ const HealthDashboard = () => {
               >
                 <h3 className="text-sm">Heart Rate</h3>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">
-                    {recentRestingHeartRate}
-                  </span>
+                  <span className="text-xl font-bold">74</span>
                   <span className="text-xs">BPM</span>
                 </div>
                 <div className="mt-2 h-8">
@@ -299,7 +299,10 @@ const HealthDashboard = () => {
                 </div>
               </Card>
 
-              <Card onClick={handleHealthBloodSugar} className="bg-red-500 text-white border-0 p-3">
+              <Card
+                onClick={handleHealthBloodSugar}
+                className="bg-red-500 text-white border-0 p-3"
+              >
                 <h3 className="text-sm">Blood Sugar</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-bold">{randomBloodSugar}</span>
@@ -348,9 +351,7 @@ const HealthDashboard = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Daily Steps</p>
-                    <p className="font-semibold">
-                      {recentDailySteps.toLocaleString()}
-                    </p>
+                    <p className="font-semibold">4,099</p>
                   </div>
                 </div>
               </Card>
@@ -361,12 +362,16 @@ const HealthDashboard = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Active Minutes</p>
-                    <p className="font-semibold">{recentActiveMinutes} min</p>
+                    <p className="font-semibold">9 min</p>
                   </div>
                 </div>
               </Card>
             </div>
           </div>
+
+          <ModelVisualizationCard />
+
+          <HealthSimulation />
 
           {/* Medications Section - Last item before navigation */}
           <div className="mb-4">
