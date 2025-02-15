@@ -13,7 +13,25 @@ const FoodAlternatives = ({ foodData }) => {
   const handleFoodClick = (food) => {
     navigate("/searchResults", { state: { ...food } });
   };
-
+  const getUnsplashImage = async (query) => {
+    try {
+      const accessKey = "I_ZvZeggu4I1aaGi4lx2xMUd8CIRKrlqHgjzCIHbt7I";
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?page=1&query=${encodeURIComponent(query)}&per_page=1&orientation=squarish`,
+        {
+          headers: {
+            Authorization: `Client-ID ${accessKey}`,
+          },
+        }
+      );
+  
+      const data = await response.json();
+      return data.results?.[0]?.urls?.regular || 'https://via.placeholder.com/150';
+    } catch (error) {
+      console.error('Unsplash API Error:', error);
+      return 'https://via.placeholder.com/150';
+    }
+  };
   const fetchAlternatives = async (foodItem) => {
     setLoading(true);
     try {
@@ -81,7 +99,13 @@ respond in list of JSON format
       responseText = responseText.replace(/```json|```/g, "").trim();
       const aiResponse = JSON.parse(responseText);
       console.log(aiResponse);
-      setAlternatives(aiResponse);
+      const alternativesWithImages = await Promise.all(
+        aiResponse.map(async (food) => ({
+          ...food,
+          image: await getUnsplashImage(food.name),
+        }))
+      );
+      setAlternatives(alternativesWithImages);
     } catch (err) {
       setError("Failed to fetch alternatives: " + err.message);
       console.error("API Error:", err);
