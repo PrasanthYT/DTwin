@@ -45,7 +45,7 @@ export default function HealthHeartRate() {
       const token = sessionStorage.getItem("token");
       if (!token) throw new Error("No authentication token found");
 
-      const response = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

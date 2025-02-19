@@ -176,7 +176,7 @@ export default function AddMeds() {
     const fetchUserMedications = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get("http://localhost:4200/api/auth/user", {
+        const response = await axios.get("https://dtwin.onrender.com/api/auth/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
   
@@ -225,7 +225,7 @@ export default function AddMeds() {
       try {
         const token = sessionStorage.getItem("token");
         await axios.post(
-          "http://localhost:4200/api/auth/update-medications",
+          "https://dtwin.onrender.com/api/auth/update-medications",
           { medications: selectedMedications },
           { headers: { Authorization: `Bearer ${token}` } }
         );

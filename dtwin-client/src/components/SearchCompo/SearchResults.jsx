@@ -194,7 +194,7 @@ const SearchResults = () => {
 
       // ✅ Fetch Fitbit Data
       const fitbitResponse = await axios.get(
-        "http://localhost:4200/api/fitbit/get",
+        "https://dtwin.onrender.com/api/fitbit/get",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const fitbitData = fitbitResponse.data.data.weeklyData[0]; // Latest Fitbit data
@@ -209,7 +209,7 @@ const SearchResults = () => {
 
       // ✅ Fetch Glucose Data (Fixed API Call)
       const glucoseResponse = await axios.get(
-        `http://localhost:4200/api/glucose/get?userId=${userId}`,
+        `https://dtwin.onrender.com/api/glucose/get?userId=${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -287,7 +287,7 @@ const SearchResults = () => {
       const userId = decodedToken.userId;
 
       await axios.post(
-        "http://localhost:4200/api/food/add",
+        "https://dtwin.onrender.com/api/food/add",
         { userId, ...scaledFoodData, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );

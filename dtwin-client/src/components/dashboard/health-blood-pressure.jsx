@@ -113,7 +113,7 @@ export default function HealthBloodPressure() {
   // This function will fetch the user data (including health report)
   const fetchUserData = async () => {
     try {
-      const response = await fetch("http://localhost:4200/api/auth/user", {
+      const response = await fetch("https://dtwin.onrender.com/api/auth/user", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

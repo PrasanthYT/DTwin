@@ -25,14 +25,14 @@ const HealthScore = () => {
       const token = sessionStorage.getItem("token");
   
       // Fetch User Health Score
-      const userResponse = await axios.get("http://localhost:4200/api/auth/user", {
+      const userResponse = await axios.get("https://dtwin.onrender.com/api/auth/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
   
       const healthScore = userResponse.data?.user?.healthData?.healthScore || "--";
   
       // Fetch Fitbit Data
-      const fitbitResponse = await axios.get("http://localhost:4200/api/fitbit/get", {
+      const fitbitResponse = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
         headers: { Authorization: `Bearer ${token}` },
       });
   

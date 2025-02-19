@@ -22,7 +22,7 @@ function Fitbit() {
   // ✅ Check if user is authenticated via session
   const checkSession = async () => {
     try {
-      const response = await axios.get("http://localhost:4200/api/fitbit/session", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/session", {
         withCredentials: true,
       });
 
@@ -40,7 +40,7 @@ function Fitbit() {
   const handleAuth = async () => {
     setError(null);
     try {
-      const response = await axios.get("http://localhost:4200/auth/fitbit", {
+      const response = await axios.get("https://dtwin.onrender.com/auth/fitbit", {
         withCredentials: true,
       });
       window.location.href = response.data.authUrl; // Redirect to Fitbit login
@@ -57,7 +57,7 @@ function Fitbit() {
     setIsSyncing(true);
 
     try {
-      const response = await axios.get("http://localhost:4200/api/fitbit/data", {
+      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/data", {
         withCredentials: true,
       });
 
@@ -91,7 +91,7 @@ function Fitbit() {
         return;
       }
 
-      await axios.post("http://localhost:4200/api/fitbit/save", data, {
+      await axios.post("https://dtwin.onrender.com/api/fitbit/save", data, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });

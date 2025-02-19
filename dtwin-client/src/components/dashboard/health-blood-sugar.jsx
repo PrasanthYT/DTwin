@@ -66,7 +66,7 @@ const GlucoseMonitor = () => {
       if (!userId) throw new Error("Invalid token: User ID not found");
 
       const response = await axios.get(
-        `http://localhost:4200/api/glucose/get?userId=${userId}`,
+        `https://dtwin.onrender.com/api/glucose/get?userId=${userId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -307,7 +307,7 @@ const GlucoseMonitor = () => {
       // Format data and send to API
       const formattedData = formatDataForAPI(processedData);
       await axios.post(
-        "http://localhost:4200/api/glucose/save",
+        "https://dtwin.onrender.com/api/glucose/save",
         { userId, glucoseRecords: formattedData },
         { headers: { Authorization: `Bearer ${token}` } }
       );

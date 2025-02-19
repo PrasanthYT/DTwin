@@ -6,7 +6,7 @@ const FitbitData = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4200/fitbit/data", { withCredentials: true })
+      .get("https://dtwin.onrender.com/fitbit/data", { withCredentials: true })
       .then((res) => setData(res.data))
       .catch((err) => console.error("Error:", err));
   }, []);
