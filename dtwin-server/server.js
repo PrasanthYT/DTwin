@@ -9,18 +9,28 @@ const authRoutes = require("./routes/auth");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fitbit = require("./routes/fitbitRoute");
 const foodLogRoute = require("./routes/foodLogRoute");
+const session = require("express-session");
+const glucoseRoutes = require("./routes/glucoseRoutes");
 
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(bodyParser.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // ✅ Allow frontend to access API
+    credentials: true, // ✅ Allow cookies & session data
+  })
+);
+// ✅ Increase request body size limit
+app.use(bodyParser.json({ limit: "50mb" })); // Allows up to 50MB JSON payloads
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoute);
 app.use("/api/fitbit", fitbit);
 app.use("/api/foodlog", foodLogRoute);
+app.use("/api/glucose", glucoseRoutes);
 app.post("/api/speech/generate", async (req, res) => {
   try {
     const data = req.body;
@@ -107,163 +117,121 @@ app.post("/api/identify-food", async (req, res) => {
   }
 });
 
-app.post("/api/");
+// Fitbit Session Setup
+app.use(
+  session({
+    secret: "fitbit_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set `true` if using HTTPS
+      httpOnly: true,
+      sameSite: "lax",
+    },
+  })
+);
 
-const FITBIT_CLIENT_ID = "23Q68K";
-const FITBIT_CLIENT_SECRET = "b802ba232cbe4aaa439faa64b3483bd4";
-const REDIRECT_URI = "http://localhost:5173/Fitbit";
+// ✅ Check if User is Authenticated
+app.get("/api/fitbit/session", (req, res) => {
+  res.json({ authenticated: !!req.session.access_token });
+});
 
-// Helper function to get date string for n days ago
-const getDateString = (daysAgo) => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysAgo);
-  return date.toISOString().split("T")[0];
-};
-
-// Helper function to handle errors
-const handleError = (error, res) => {
-  console.error("Error details:", {
-    message: error.message,
-    response: error.response?.data,
-    status: error.response?.status,
-  });
-
-  const status = error.response?.status || 500;
-  const message = error.response?.data?.errors?.[0]?.message || error.message;
-
-  res.status(status).json({
-    error: message,
-    details: error.response?.data,
-  });
-};
-
-app.get("/auth", (req, res) => {
-  const scopes = [
-    "activity",
-    "nutrition",
-    "heartrate",
-    "location",
-    "profile",
-    "settings",
-    "sleep",
-    "social",
-    "weight",
-  ].join("%20");
-
-  const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-    REDIRECT_URI
-  )}&scope=${scopes}`;
+// ✅ Step 1: Redirect User to Fitbit OAuth
+app.get("/auth/fitbit", (req, res) => {
+  const authUrl = `${
+    process.env.FITBIT_AUTH_URL
+  }?response_type=code&client_id=${
+    process.env.FITBIT_CLIENT_ID
+  }&redirect_uri=${encodeURIComponent(
+    process.env.FITBIT_REDIRECT_URI
+  )}&scope=activity%20heartrate%20sleep%20profile`;
   res.json({ authUrl });
 });
 
-app.post("/token", async (req, res) => {
-  const { code } = req.body;
-
-  if (!code) {
-    return res.status(400).json({ error: "Authorization code is required" });
-  }
+// ✅ Step 2: Handle Fitbit OAuth Callback
+app.get("/auth/callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) return res.status(400).json({ error: "No code provided" });
 
   try {
-    const params = new URLSearchParams();
-    params.append("code", code);
-    params.append("grant_type", "authorization_code");
-    params.append("redirect_uri", REDIRECT_URI);
+    // ✅ Construct Basic Auth Header
+    const credentials = Buffer.from(
+      `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
+    ).toString("base64");
 
-    const tokenResponse = await axios.post(
-      "https://api.fitbit.com/oauth2/token",
-      params,
+    // ✅ Exchange Code for Access Token
+    const response = await axios.post(
+      process.env.FITBIT_TOKEN_URL,
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: process.env.FITBIT_CLIENT_ID,
+        client_secret: process.env.FITBIT_CLIENT_SECRET, // ✅ Ensure Secret is Sent
+        redirect_uri: process.env.FITBIT_REDIRECT_URI,
+        code,
+      }),
       {
-        auth: {
-          username: FITBIT_CLIENT_ID,
-          password: FITBIT_CLIENT_SECRET,
-        },
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${credentials}`, // ✅ Proper Basic Auth
         },
       }
     );
 
-    res.json(tokenResponse.data);
+    const { access_token } = response.data;
+
+    // ✅ Store access token in session
+    req.session.access_token = access_token;
+    console.log("✅ Fitbit Token Stored:", access_token);
+
+    // ✅ Redirect to frontend
+    res.redirect("http://localhost:5173/dashboard");
   } catch (error) {
-    handleError(error, res);
+    console.error("❌ Fitbit Auth Error:", error.response?.data || error);
+    res.status(500).json({ error: "Authentication failed" });
   }
 });
 
-app.get("/fitbit-data", async (req, res) => {
-  const { token } = req.query;
-
-  if (!token) {
-    return res.status(400).json({ error: "Access token is required" });
-  }
+// ✅ Step 3: Get Fitbit Data (Weekly Summary)
+app.get("/api/fitbit/data", async (req, res) => {
+  const accessToken = req.session.access_token;
+  if (!accessToken) return res.status(401).json({ error: "Unauthorized" });
 
   try {
-    const config = {
-      headers: { Authorization: `Bearer ${token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${accessToken}` } };
 
-    const today = getDateString(0);
-    const weekAgo = getDateString(6);
+    // ✅ Get Dates
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 6);
+    const weekAgoStr = weekAgo.toISOString().split("T")[0];
 
-    // Fetch all required data
-    const [
-      profileResponse,
-      sleepResponse,
-      activityResponse,
-      heartRateResponse,
-    ] = await Promise.all([
-      // Profile data
-      axios.get("https://api.fitbit.com/1/user/-/profile.json", config),
-
-      // Sleep data for the week
+    // ✅ Fetch Fitbit Data
+    const [profile, sleep, activity, heartRate] = await Promise.all([
+      axios.get(`${process.env.FITBIT_API_URL}profile.json`, config),
       axios.get(
-        `https://api.fitbit.com/1.2/user/-/sleep/date/${weekAgo}/${today}.json`,
+        `${process.env.FITBIT_API_URL}sleep/date/${weekAgoStr}/${today}.json`,
         config
       ),
-
-      // Activity data for the week
-      Promise.all(
-        Array.from({ length: 7 }, (_, i) =>
-          axios.get(
-            `https://api.fitbit.com/1/user/-/activities/date/${getDateString(
-              i
-            )}.json`,
-            config
-          )
-        )
+      axios.get(
+        `${process.env.FITBIT_API_URL}activities/date/${today}.json`,
+        config
       ),
-
-      // Heart rate data for the week
-      Promise.all(
-        Array.from({ length: 7 }, (_, i) =>
-          axios.get(
-            `https://api.fitbit.com/1/user/-/activities/heart/date/${getDateString(
-              i
-            )}/1d.json`,
-            config
-          )
-        )
+      axios.get(
+        `${process.env.FITBIT_API_URL}activities/heart/date/${weekAgoStr}/${today}.json`,
+        config
       ),
+      
     ]);
 
-    // Process weekly data
-    const weeklyData = Array.from({ length: 7 }, (_, i) => {
-      const date = getDateString(6 - i);
-      return {
-        date,
-        activity: activityResponse[6 - i].data,
-        heartRate: heartRateResponse[6 - i].data,
-        sleep:
-          sleepResponse.data.sleep.filter((s) => s.dateOfSleep === date)[0] ||
-          null,
-      };
-    });
-
     res.json({
-      profile: profileResponse.data,
-      weeklyData,
+      profile: profile.data,
+      sleep: sleep.data,
+      activity: activity.data,
+      heartRate: heartRate.data,
     });
   } catch (error) {
-    handleError(error, res);
+    console.error("❌ Fitbit Data Error:", error.response?.data || error);
+    res.status(500).json({ error: "Failed to fetch data" });
   }
 });
 

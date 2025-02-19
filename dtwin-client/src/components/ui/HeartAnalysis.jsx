@@ -1,67 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const HeartAnalysis = () => {
   const [heartData, setHeartData] = useState({
-    avgHeartRate: "--",
-    minHeartRate: "--",
-    maxHeartRate: "--",
-    status: "Loading...",
+    avgHeartRate: 72,
+    minHeartRate: 60,
+    maxHeartRate: 110,
+    status: "Healthy",
   });
+
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchHeartRateData();
   }, []);
 
-  // ✅ Fetch Heart Rate Data from Fitbit API
-  const fetchHeartRateData = async () => {
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
-        headers: { Authorization: `Bearer ${token}` },
+  // ✅ Simulate Fetching Heart Rate Data with Dummy Values
+  const fetchHeartRateData = () => {
+    setTimeout(() => {
+      const randomHR = Math.floor(Math.random() * (80 - 65) + 65);
+      const randomMin = Math.floor(Math.random() * (65 - 58) + 58);
+      const randomMax = Math.floor(Math.random() * (120 - 100) + 100);
+
+      setHeartData({
+        avgHeartRate: randomHR,
+        minHeartRate: randomMin,
+        maxHeartRate: randomMax,
+        status: getHeartStatus(randomHR),
       });
-
-      if (response.status === 200) {
-        const weeklyData = response.data?.data?.weeklyData || [];
-        const latestData = weeklyData.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-        if (latestData) {
-          const restingHeartRate = latestData?.heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate || "--";
-
-          const heartRateZones = latestData?.heartRate?.["activities-heart"]?.[0]?.value?.heartRateZones || [];
-          const minHeartRate = heartRateZones.length > 0 ? heartRateZones[0].min : "--";
-          const maxHeartRate = heartRateZones.length > 0 ? heartRateZones[heartRateZones.length - 1].max : "--";
-
-          const status = getHeartStatus(restingHeartRate);
-
-          setHeartData({
-            avgHeartRate: restingHeartRate,
-            minHeartRate,
-            maxHeartRate,
-            status,
-          });
-        }
-      }
-    } catch (error) {
-      console.error("❌ Error fetching heart rate data:", error);
-    }
+    }, 1000); // Simulate API delay
   };
 
   // ✅ Determine Heart Health Status
   const getHeartStatus = (bpm) => {
-    if (bpm === "--") return "No Data";
     if (bpm >= 100) return "High - Consider Resting";
     if (bpm < 60) return "Low - Monitor Closely";
     return "Healthy";
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  }
+  const handleBack = () => navigate(-1);
 
   return (
     <div className="w-screen h-screen bg-[#F2F7FB] p-6 flex flex-col relative">

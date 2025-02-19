@@ -4,49 +4,71 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function Settings() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
     email: "",
     name: "",
-    gender: "male",
     profilePicture: "/api/placeholder/150/150",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   const fetchUserData = async () => {
     try {
+      setIsFetching(true);
       const token = sessionStorage.getItem("token");
+      
+      if (!token) {
+        navigate("/signin");
+        return;
+      }
+
       const response = await fetch("https://dtwin.onrender.com/api/auth/user", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch user data");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const { user } = await response.json();
       setUserData({
         email: user.username || "",
         name: user.name || "",
-        gender: user.gender || "male",
-        profilePicture: user.avatar || "/api/placeholder/150/150",
+        profilePicture: user.userDetails.avatar || "/api/placeholder/150/150",
       });
     } catch (error) {
+      toast.error("Failed to fetch user data. Please try again later.");
       console.error("Error fetching user data:", error);
+    } finally {
+      setIsFetching(false);
     }
   };
 
   const handleUpdateProfile = async () => {
-    setLoading(true);
+    if (!userData.name.trim()) {
+      toast.error("Name field cannot be empty");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const token = sessionStorage.getItem("token");
+      
+      if (!token) {
+        navigate("/signin");
+        return;
+      }
+
       const response = await fetch(
         "https://dtwin.onrender.com/api/auth/update-profile",
         {
@@ -59,53 +81,53 @@ export default function Settings() {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to update profile");
-      alert("Profile updated successfully!");
-      // Navigate back after successful update
-      navigate(-1);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      toast.success("Profile updated successfully!");
+      navigate("/dashboard");
     } catch (error) {
+      toast.error("Failed to update profile. Please try again later.");
       console.error("Error updating profile:", error);
-      alert("Failed to update profile");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleBack = () => {
-    // Navigate back to previous page
-    navigate(-1);
-  };
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      <Card className="mx-auto max-w-md rounded-none sm:rounded-lg relative mt-2">
-        <CardHeader className="relative h-36 overflow-hidden rounded-b-[2.5rem] bg-[#1a1f37] p-6">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/20 to-transparent"></div>
+    <div className="min-h-screen bg-slate-50 p-4">
+      <Card className="mx-auto max-w-md">
+        <CardHeader className="relative h-36 overflow-hidden rounded-t-lg bg-[#1a1f37] p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/20 to-transparent" />
           <div className="relative flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
               className="h-10 w-10 rounded-lg bg-white/10 hover:bg-white/20"
-              onClick={handleBack}
+              onClick={() => navigate(-1)}
             >
               <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
-            <h1 className="mt-2 text-xl font-semibold text-white">
-              Profile Setup
-            </h1>
+            <h1 className="text-xl font-semibold text-white">Profile Setup</h1>
           </div>
         </CardHeader>
 
-        {/* Rest of the component remains the same */}
-        <div className="absolute left-0 right-0 -mt-14 flex justify-center">
-          <div className="relative">
-            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg">
-              <img
-                src={userData.profilePicture}
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
-            </div>
+        <div className="relative -mt-14 flex justify-center">
+          <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg">
+            <img
+              src={userData.profilePicture}
+              alt="Profile"
+              className="h-full w-full object-cover"
+            />
           </div>
         </div>
 
@@ -120,7 +142,7 @@ export default function Settings() {
                   name="email"
                   value={userData.email}
                   disabled
-                  className="pl-10 bg-gray-200 cursor-not-allowed"
+                  className="pl-10 bg-gray-100 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -137,6 +159,7 @@ export default function Settings() {
                     setUserData((prev) => ({ ...prev, name: e.target.value }))
                   }
                   className="pl-10"
+                  placeholder="Enter your name"
                 />
               </div>
             </div>
@@ -144,9 +167,10 @@ export default function Settings() {
 
           <Button
             onClick={handleUpdateProfile}
-            className="w-full gap-2 bg-blue-600 py-6 text-lg font-semibold hover:bg-blue-700"
+            disabled={isLoading}
+            className="w-full gap-2 bg-blue-600 py-6 text-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Updating..." : "Save"}
+            {isLoading ? "Updating..." : "Save"}
             <ArrowRight className="h-5 w-5" />
           </Button>
         </CardContent>

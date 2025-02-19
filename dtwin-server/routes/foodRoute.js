@@ -5,7 +5,7 @@ const Food = require("../models/Food");
 // Add food to user
 router.post("/add", async (req, res) => {
   try {
-    const { userId, name, calories, carbohydrates, protein, fat, quantity } = req.body;
+    const { userId, name, calories, carbohydrates, protein, quantity,glycemicIndex,glycemicLoad ,fiber,sugar} = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
@@ -17,8 +17,11 @@ router.post("/add", async (req, res) => {
       calories,
       carbohydrates,
       protein,
-      fat,
       quantity,
+      sugar,
+      fiber,
+      glycemicIndex,
+      glycemicLoad,
     });
 
     await newFood.save();

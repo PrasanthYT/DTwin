@@ -32,6 +32,11 @@ import AddMeds from "./components/onboarding/health-addmeds";
 import SplashScreen from "./components/onboarding/SplashScreen";
 import PrivateRoute from "./PrivateRoute";
 import Settings from "./components/dashboard/settings";
+import FoodAlternatives from "./components/SearchCompo/alternativeFood";
+import HealthBloodSugar from "./components/dashboard/health-blood-sugar";
+import GlucoseMonitor from "./components/dashboard/health-blood-sugar";
+import BodySimulator from "./pages/Simulation";
+import HealthVisualizationApp from "./components/dashboard/three-d-model";
 
 // ✅ PublicRoute to prevent signed-in users from accessing auth pages
 const PublicRoute = ({ children }) => {
@@ -258,6 +263,38 @@ const App = () => {
           element={
             <PrivateRoute>
               <AddMeds />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/alternativeFood"
+          element={
+            <PrivateRoute>
+              <FoodAlternatives />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/healthbloodsugar"
+          element={
+            <PrivateRoute>
+              <HealthBloodSugar />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/simulation"
+          element={
+            <PrivateRoute>
+              <BodySimulator />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/3d-model"
+          element={
+            <PrivateRoute>
+              <HealthVisualizationApp />
             </PrivateRoute>
           }
         />

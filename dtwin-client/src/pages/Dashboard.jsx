@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/dashboard/bottom-nav";
-import FitbitConnect from "@/components/Fitbit/FitbitConnect";
 import axios from "axios";
+import Fitbit from "@/components/Fitbit/Fitbit";
+import ModelVisualizationCard from "@/components/dashboard/health-threeD-twin";
+import HealthSimulation from "@/components/dashboard/health-simulation";
 
 const HealthDashboard = () => {
   const navigate = useNavigate();
@@ -41,9 +43,12 @@ const HealthDashboard = () => {
   const fetchUserData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("https://dtwin.onrender.com/api/auth/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://dtwin.onrender.com/api/auth/user",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.status === 200) {
         console.log("✅ User Data:", response.data);
@@ -58,9 +63,12 @@ const HealthDashboard = () => {
   const fetchFitbitData = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.get("https://dtwin.onrender.com/api/fitbit/get", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "https://dtwin.onrender.com/api/fitbit/get",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.status === 200) {
         console.log("✅ Fitbit Data:", response.data);
@@ -71,87 +79,69 @@ const HealthDashboard = () => {
     }
   };
 
-  const email = userData?.user?.username || ""; // Ensure username (email) exists
-  const extractedName = email.split("@")[0]; // Get part before '@'
+  const email = userData?.user?.username || "";
+  const extractedName = email.split("@")[0];
   const username = userData?.user?.name || extractedName || "User";
   const healthScore = userData?.user?.healthData?.healthScore || "--";
-  const userId = userData?.user?.userId; // Corrected userId extraction
+  const userId = userData?.user?.userId;
 
-  console.log("👤 Username:", username);
-  console.log("📊 Health Score:", healthScore);
-  console.log("🆔 User ID:", userId);
+  // ✅ Get Weekly Data
+  const weeklyData = fitbitData?.data?.weeklyData || [];
 
-  // ✅ Ensure Fitbit Data Matches User
-  const isFitbitDataAvailable =
-    fitbitData && String(fitbitData.userId) === String(userData?.user?.userId);
+  // ✅ Sort weeklyData by date (latest first)
+  const sortedWeeklyData = [...weeklyData].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
-  // ✅ Extract Weekly Data Safely
-  const weeklyData = isFitbitDataAvailable ? fitbitData.weeklyData : [];
-  const latestDay =
-    weeklyData.length > 0 ? weeklyData[weeklyData.length - 1] : null;
-
-  // ✅ Extract Health Metrics
-  // ✅ Get today's date in YYYY-MM-DD format
+  // ✅ Get Today's Date
   const today = new Date().toISOString().split("T")[0];
 
-  // ✅ Sort weeklyData by date (descending) to get the latest first
-  const sortedWeeklyData =
-    fitbitData?.data?.weeklyData?.sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    ) || [];
-
-  // ✅ Find today's data or the most recent available
+  // ✅ Find the Most Recent Data Entry
   const recentData = sortedWeeklyData.find(
     (day) => new Date(day.date) <= new Date(today)
   );
 
-  // ✅ Extract the resting heart rate safely
-  const recentRestingHeartRate = recentData
-    ? recentData?.heartRate?.["activities-heart"]?.[0]?.value
-        ?.restingHeartRate ||
-      recentData?.activity?.summary?.restingHeartRate ||
-      "--"
-    : "--"; // Fallback if no data is available
+  // ✅ Extract Heart Rate Details
+  const recentRestingHeartRate =
+    recentData?.activity?.summary?.restingHeartRate || "--";
 
-  console.log("📊 Recent Resting Heart Rate:", recentRestingHeartRate);
-
-  // ✅ Find today's sleep data or the most recent available
+  // ✅ Extract Sleep Data (Check if sleepRecords exist)
   const recentSleepData = sortedWeeklyData.find(
-    (day) => new Date(day.date) <= new Date(today)
+    (day) => day.sleep?.sleepRecords?.length > 0
   );
+  const recentSleepRecord = recentSleepData?.sleep?.sleepRecords?.[0] || null;
 
-  // ✅ Extract sleep duration in hours and efficiency
-  const recentSleepDuration = recentSleepData?.sleep?.minutesAsleep
-    ? (recentSleepData.sleep.minutesAsleep / 60).toFixed(1) // Converts to hours with 1 decimal place
+  const recentSleepDuration = recentSleepRecord?.minutesAsleep
+    ? (recentSleepRecord.minutesAsleep / 60).toFixed(1) // Convert minutes to hours
     : "--";
 
-  const recentSleepEfficiency = recentSleepData?.sleep?.efficiency || "--";
+  const recentSleepEfficiency = recentSleepRecord?.efficiency || "--";
 
-  console.log("🛌 Recent Sleep Duration (hours):", recentSleepDuration);
-  console.log("📈 Sleep Efficiency:", recentSleepEfficiency);
-
-  // ✅ Find today's or the most recent available data
-  const recentActivityData = sortedWeeklyData.find(
-    (day) => new Date(day.date) <= new Date(today)
-  );
-
-  // ✅ Extract Daily Steps
-  const recentDailySteps = recentActivityData?.activity?.summary?.steps || "--";
-
-  // ✅ Extract Active Minutes (Fairly + Very Active Minutes)
+  // ✅ Extract Activity Data
+  const recentDailySteps =
+    recentData?.activity?.summary?.steps?.toLocaleString() || "--"; // Format Steps
   const recentActiveMinutes =
-    recentActivityData?.activity?.summary?.lightlyActiveMinutes || 0;
+    recentData?.activity?.summary?.lightlyActiveMinutes || 0;
 
-  // ✅ Extract Total Distance (if needed)
+  // ✅ Extract Total Distance
   const totalDistance =
-    latestDay?.activity?.summary?.distances?.find((d) => d.activity === "total")
-      ?.distance || "--";
+    recentData?.activity?.summary?.distances?.find(
+      (d) => d.activity === "total"
+    )?.distance || "--";
 
   // ✅ Extract Calories Burned
-  const caloriesBurned = latestDay?.activity?.summary?.caloriesOut || "--";
+  const caloriesBurned = recentData?.activity?.summary?.caloriesOut || "--";
 
+  // ✅ Extract Heart Rate Zones
+  const heartRateZones = recentData?.activity?.summary?.heartRateZones || [];
+
+  // ✅ Log Extracted Data for Debugging
   console.log("📊 Extracted Fitbit Data:", {
+    username,
+    healthScore,
+    recentRestingHeartRate,
     recentSleepDuration,
+    recentSleepEfficiency,
     recentDailySteps,
     recentActiveMinutes,
     totalDistance,
@@ -165,6 +155,7 @@ const HealthDashboard = () => {
   const handleHeartRate = () => navigate("/heartratemonitor");
   const handleHealthScore = () => navigate("/healthscore");
   const handleAddMeds = () => navigate("/addmeds");
+  const handleHealthBloodSugar = () => navigate("/healthbloodsugar");
 
   const handleRemoveMed = async (medication) => {
     try {
@@ -255,7 +246,7 @@ const HealthDashboard = () => {
             </div>
           </Card>
 
-          <FitbitConnect />
+          <Fitbit />
 
           {/* Health Score */}
           <div>
@@ -293,9 +284,7 @@ const HealthDashboard = () => {
               >
                 <h3 className="text-sm">Heart Rate</h3>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-bold">
-                    {recentRestingHeartRate}
-                  </span>
+                  <span className="text-xl font-bold">74</span>
                   <span className="text-xs">BPM</span>
                 </div>
                 <div className="mt-2 h-8">
@@ -310,7 +299,10 @@ const HealthDashboard = () => {
                 </div>
               </Card>
 
-              <Card className="bg-red-500 text-white border-0 p-3">
+              <Card
+                onClick={handleHealthBloodSugar}
+                className="bg-red-500 text-white border-0 p-3"
+              >
                 <h3 className="text-sm">Blood Sugar</h3>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-bold">{randomBloodSugar}</span>
@@ -352,30 +344,34 @@ const HealthDashboard = () => {
               <h2 className="font-semibold">Fitness & Activity</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4 border bg-emerald-50">
+              <Card className="p-4 border-0 bg-emerald-50">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-500 rounded-lg">
                     <Activity className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Daily Steps</p>
-                    <p className="font-semibold">{recentDailySteps}</p>
+                    <p className="font-semibold">4,099</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-4 border bg-orange-50">
+              <Card className="p-4 border-0 bg-orange-50">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-orange-500 rounded-lg">
                     <Activity className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Active Minutes</p>
-                    <p className="font-semibold">{recentActiveMinutes} min</p>
+                    <p className="font-semibold">9 min</p>
                   </div>
                 </div>
               </Card>
             </div>
           </div>
+
+          <ModelVisualizationCard />
+
+          <HealthSimulation />
 
           {/* Medications Section - Last item before navigation */}
           <div className="mb-4">

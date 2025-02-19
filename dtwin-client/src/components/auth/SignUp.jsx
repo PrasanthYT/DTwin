@@ -16,7 +16,7 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) { 
+    if (password !== confirmPassword) {
       toast.error("Passwords do not match.");
       return;
     }
@@ -54,22 +54,29 @@ export default function SignUp() {
     }
   };
 
+  const handleSignin = () => {
+    navigate("/signin"); // Redirect to Sign In page
+  };
+
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100 relative">
-      <Toaster position="top-center" reverseOrder={false} /> {/* Toast Notification */}
-
+      <Toaster position="top-center" reverseOrder={false} />{" "}
+      {/* Toast Notification */}
       {/* Blue Header Section */}
       <div className="absolute top-0 left-0 w-full bg-[#1A2B50] h-40 rounded-b-3xl flex flex-col items-center justify-center">
         <Plus className="text-white h-8 w-8" />
-        <h2 className="text-white text-2xl font-semibold mt-3">Sign Up For Free!</h2>
+        <h2 className="text-white text-2xl font-semibold mt-3">
+          Sign Up For Free!
+        </h2>
       </div>
-
       {/* Card Container */}
       <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative mt-36">
         <div className="px-6 py-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-gray-700 text-sm font-medium">Email Address</label>
+              <label className="block text-gray-700 text-sm font-medium">
+                Email Address
+              </label>
               <div className="relative mt-1">
                 <FaEnvelope className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -84,7 +91,9 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label className="block text-gray-700 text-sm font-medium">Password</label>
+              <label className="block text-gray-700 text-sm font-medium">
+                Password
+              </label>
               <div className="relative mt-1">
                 <FaLock className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -100,13 +109,19 @@ export default function SignUp() {
                   className="absolute right-3 top-3 text-gray-500"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-gray-700 text-sm font-medium">Confirm Password</label>
+              <label className="block text-gray-700 text-sm font-medium">
+                Confirm Password
+              </label>
               <div className="relative mt-1">
                 <FaLock className="absolute left-3 top-3 text-gray-500" />
                 <input
@@ -122,7 +137,11 @@ export default function SignUp() {
                   className="absolute right-3 top-3 text-gray-500"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -142,7 +161,10 @@ export default function SignUp() {
           <div className="mt-4 text-center">
             <p className="text-sm">
               Already have an account?{" "}
-              <a href="/signin" className="text-red-500 font-medium hover:underline">
+              <a
+                onClick={handleSignin}
+                className="text-red-500 font-medium hover:underline"
+              >
                 Sign In.
               </a>
             </p>
