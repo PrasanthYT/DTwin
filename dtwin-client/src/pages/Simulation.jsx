@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,56 +10,253 @@ import {
   Heart,
   Moon,
   Brain,
-  BarChart,
-  Play,
   AlertTriangle,
   RefreshCw,
   Loader2,
-  TrendingUp,
-  TrendingDown,
   Info,
-  ArrowRight
+  ArrowLeft,
+  DropletIcon,
+  Play,
 } from "lucide-react";
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-// Initialize the Google Generative AI client
-// Note: In a real app, you'd want to use environment variables for the API key
-import { GoogleGenerativeAI } from "@google/generative-ai";
-const genAI = new GoogleGenerativeAI("AIzaSyBdwqtlWDMCKv_hvJX4tVAFA6pGV8k9Ojk");
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
-  systemInstruction: "Objective:\nProcess health metrics based on a given scenario and baseline data, providing updated health metrics, potential risks, health impacts, and a summary.\nInput Format:\nThe input will be a JSON object containing:\njson\nCopy\nEdit\n{\n  \"scenario\": \"Description of the scenario affecting health metrics\",\n  \"baselineMetrics\": {\n    \"heartRate\": 70,\n    \"sleepHours\": 7,\n    \"stressLevel\": 3,\n    \"bloodSugar\": 100,\n    \"bloodPressure\": { \"systolic\": 120, \"diastolic\": 80 },\n    \"dailySteps\": 8000,\n    \"activeMinutes\": 30,\n    \"healthScore\": 85\n  }\n}\nExpected Output Format:\nThe system should return a JSON object containing:\nUpdated Metrics (same format as baseline with necessary changes based on scenario).\nPotential Risks (list of possible health risks due to changes).\nHealth Impacts (explanation of how changes affect well-being).\nOverall Summary (brief evaluation of whether the changes are beneficial or harmful).\nExample Output:\njson\nCopy\nEdit\n{\n  \"updatedMetrics\": {\n    \"heartRate\": 80,\n    \"sleepHours\": 5,\n    \"stressLevel\": 7,\n    \"bloodSugar\": 110,\n    \"bloodPressure\": { \"systolic\": 130, \"diastolic\": 85 },\n    \"dailySteps\": 5000,\n    \"activeMinutes\": 20,\n    \"healthScore\": 70\n  },\n  \"potentialRisks\": [\n    \"Increased risk of hypertension\",\n    \"Higher stress levels leading to anxiety\",\n    \"Elevated blood sugar, risk of prediabetes\"\n  ],\n  \"healthImpacts\": [\n    \"Higher than normal, indicating stress or lack of rest\",\n    \"Reduced sleep can lead to cognitive impairment and fatigue\",\n    \"Elevated levels may cause long-term cardiovascular issues\"\n  ],\n  \"overallSummary\": \"The current changes indicate increased health risks due to lack of sleep, reduced physical activity, and heightened stress. This could lead to long-term complications if not addressed.\"\n}\nProcessing Logic:\nAnalyze the scenario's effect on baseline metrics.\nAdjust the metrics accordingly.\nIdentify and list potential risks.\nProvide an analysis of health impacts.\nGenerate an overall summary.\nThis instruction ensures a clear and structured approach for Google Studio to process and evaluate health scenarios effectively. 🚀\n",
-});
-
-// Custom tooltip for the chart
+// Custom tooltip component for the chart
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 rounded-md shadow-lg border border-gray-200">
-        <p className="font-medium text-gray-800">{label}</p>
-        <p className="text-blue-600">
-          <span className="font-medium">Baseline:</span> {payload[0].value}
-        </p>
-        <p className="text-red-600">
-          <span className="font-medium">Simulated:</span> {payload[1].value}
-        </p>
+      <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+        <p className="font-semibold text-gray-800 mb-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-blue-600 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+            Baseline: {payload[0].value}
+          </p>
+          <p className="text-rose-600 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-rose-600"></div>
+            Simulated: {payload[1].value}
+          </p>
+        </div>
       </div>
     );
   }
   return null;
 };
 
+// Metric Card Component
+const MetricCard = ({
+  icon: Icon,
+  title,
+  value,
+  unit,
+  min,
+  max,
+  onChange,
+  recommendation,
+}) => (
+  <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 rounded-lg bg-gray-50">
+        <Icon className="w-5 h-5" />
+      </div>
+      <div>
+        <h3 className="font-medium text-gray-900">{title}</h3>
+        <p className="text-xl font-semibold text-gray-800">
+          {value}{" "}
+          <span className="text-sm font-normal text-gray-500">{unit}</span>
+        </p>
+      </div>
+    </div>
+    <Slider
+      value={[value]}
+      min={min}
+      max={max}
+      step={(max - min) / 100}
+      onValueChange={(val) => onChange(val[0])}
+      className="my-4"
+    />
+    <p className="text-sm text-gray-600 mt-2">{recommendation}</p>
+  </div>
+);
+
+// Loading State Component
+const LoadingState = () => (
+  <Card className="p-6 mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
+    <div className="flex items-center justify-center">
+      <div className="text-center">
+        <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500 mb-4" />
+        <h1 className="text-2xl font-bold text-indigo-800 mb-2">
+          Loading Health Data
+        </h1>
+        <p className="text-gray-600">
+          Please wait while we retrieve your latest health metrics...
+        </p>
+      </div>
+    </div>
+    <div className="mt-8 space-y-4">
+      <Skeleton className="h-8 w-3/4 mx-auto rounded-md" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Skeleton className="h-24 rounded-md" />
+        <Skeleton className="h-24 rounded-md" />
+        <Skeleton className="h-24 rounded-md" />
+        <Skeleton className="h-24 rounded-md" />
+      </div>
+      <Skeleton className="h-10 w-40 mx-auto rounded-md mt-6" />
+    </div>
+  </Card>
+);
+
+// Results Section Component
+const ResultsSection = ({ results, baselineMetrics, onReset }) => {
+  const chartData = [
+    {
+      name: "Heart Rate",
+      baseline: baselineMetrics.heartRate,
+      simulated: results.updatedMetrics.heartRate,
+    },
+    {
+      name: "Sleep Hours",
+      baseline: baselineMetrics.sleepHours,
+      simulated: results.updatedMetrics.sleepHours,
+    },
+    {
+      name: "Daily Steps",
+      baseline: baselineMetrics.dailySteps,
+      simulated: results.updatedMetrics.dailySteps,
+    },
+    {
+      name: "Blood Sugar",
+      baseline: baselineMetrics.bloodSugar,
+      simulated: results.updatedMetrics.bloodSugar,
+    },
+  ];
+
+  return (
+    <Card className="p-8 bg-white rounded-xl shadow-lg">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900">Simulation Results</h2>
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Reset
+        </Button>
+      </div>
+
+      <div className="bg-gray-50 p-6 rounded-xl mb-8">
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            <Bar
+              dataKey="baseline"
+              name="Baseline"
+              fill="#3b82f6"
+              radius={[4, 4, 0, 0]}
+            >
+              <LabelList dataKey="baseline" position="top" />
+            </Bar>
+            <Bar
+              dataKey="simulated"
+              name="Simulated"
+              fill="#e11d48"
+              radius={[4, 4, 0, 0]}
+            >
+              <LabelList dataKey="simulated" position="top" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            Potential Risks
+          </h3>
+          <ul className="space-y-4">
+            {results.potentialRisks.map((risk, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-3 bg-amber-50 p-4 rounded-lg"
+              >
+                <AlertTriangle className="w-5 h-5 text-amber-500 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">{risk}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-blue-500" />
+            Health Impacts
+          </h3>
+          <ul className="space-y-4">
+            {results.healthImpacts.map((impact, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg"
+              >
+                <Info className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">{impact}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Brain className="w-5 h-5 text-indigo-600" />
+          AI Analysis
+        </h3>
+        <p className="text-gray-700 leading-relaxed">
+          {results.overallSummary}
+        </p>
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="flex items-start gap-3 text-sm text-gray-500">
+          <Info className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+          <p>
+            Simulation generated at{" "}
+            {new Date(results.timestamp).toLocaleString()}. This is an
+            AI-powered simulation and should not be used for medical decisions.
+            Always consult healthcare professionals for medical advice.
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+// Main Health Simulator Component
 const HealthSimulator = () => {
-  // State for user input and API response
-  const [scenario, setScenario] = useState('');
+  const [scenario, setScenario] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationResults, setSimulationResults] = useState(null);
-  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Baseline health metrics
   const [baselineMetrics, setBaselineMetrics] = useState({
     heartRate: 70,
     sleepHours: 7,
@@ -69,461 +265,255 @@ const HealthSimulator = () => {
     bloodPressure: { systolic: 120, diastolic: 80 },
     dailySteps: 8000,
     activeMinutes: 30,
-    healthScore: 85
+    healthScore: 85,
   });
-  
-  // Fetch user data on component mount
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         const token = sessionStorage.getItem("token");
-        
-        // Fetch user data
-        const userResponse = await axios.get(
-          "https://dtwin.onrender.com/api/auth/user",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        // Fetch Fitbit data
-        const fitbitResponse = await axios.get(
-          "https://dtwin.onrender.com/api/fitbit/get",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        if (userResponse.status === 200 && fitbitResponse.status === 200) {
-          const userData = userResponse.data;
-          const fitbitData = fitbitResponse.data;
-          
-          // Extract relevant health metrics
-          if (fitbitData?.data?.weeklyData?.length > 0) {
-            // Get the most recent data
-            const weeklyData = fitbitData.data.weeklyData;
-            const sortedWeeklyData = [...weeklyData].sort(
-              (a, b) => new Date(b.date) - new Date(a.date)
-            );
-            const recentData = sortedWeeklyData[0];
-            
-            // Extract sleep data
-            const recentSleepData = sortedWeeklyData.find(
-              (day) => day.sleep?.sleepRecords?.length > 0
-            );
-            const recentSleepRecord = recentSleepData?.sleep?.sleepRecords?.[0] || null;
-            
-            // Update baseline metrics with actual data
-            setBaselineMetrics({
-              heartRate: recentData?.activity?.summary?.restingHeartRate || 70,
-              sleepHours: recentSleepRecord?.minutesAsleep 
-                ? parseFloat((recentSleepRecord.minutesAsleep / 60).toFixed(1))
-                : 7,
-              stressLevel: 3, // Default as this isn't available in the data
-              bloodSugar: Math.floor(Math.random() * (140 - 80 + 1)) + 80, // Random value since it's not in the API
-              bloodPressure: { systolic: 120, diastolic: 80 }, // Default values
-              dailySteps: recentData?.activity?.summary?.steps || 8000,
-              activeMinutes: recentData?.activity?.summary?.lightlyActiveMinutes || 30,
-              healthScore: userData?.user?.healthData?.healthScore || 85
-            });
-          }
-          
-          setUserData({...userData, fitbitData});
+
+        if (!token) {
+          throw new Error("No authentication token found");
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+
+        const [userResponse, fitbitResponse] = await Promise.all([
+          axios.get("https://dtwin.onrender.com/api/auth/user", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("https://dtwin.onrender.com/api/fitbit/get", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (
+          userResponse.data &&
+          fitbitResponse.data?.data?.weeklyData?.length > 0
+        ) {
+          const weeklyData = [...fitbitResponse.data.data.weeklyData].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+
+          const recentData = weeklyData[0];
+          const recentSleepData = weeklyData.find(
+            (day) => day.sleep?.sleepRecords?.length > 0
+          );
+          const recentSleepRecord = recentSleepData?.sleep?.sleepRecords?.[0];
+
+          setBaselineMetrics((prev) => ({
+            ...prev,
+            heartRate:
+              recentData?.activity?.summary?.restingHeartRate || prev.heartRate,
+            sleepHours: recentSleepRecord?.minutesAsleep
+              ? parseFloat((recentSleepRecord.minutesAsleep / 60).toFixed(1))
+              : prev.sleepHours,
+            dailySteps: recentData?.activity?.summary?.steps || prev.dailySteps,
+            activeMinutes:
+              recentData?.activity?.summary?.lightlyActiveMinutes ||
+              prev.activeMinutes,
+            healthScore:
+              userResponse.data?.user?.healthData?.healthScore ||
+              prev.healthScore,
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
         setError("Failed to load your health data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
-  // Handle running the simulation with Google Generative AI
+
   const runSimulation = async () => {
     if (!scenario.trim()) return;
-    
+
     setIsSimulating(true);
     setError(null);
-    
+
     try {
-      // Prepare the input data for the AI
-      const inputData = {
-        scenario: scenario,
-        baselineMetrics: baselineMetrics
+      // Simulate AI response for demo purposes
+      const mockResponse = {
+        updatedMetrics: {
+          ...baselineMetrics,
+          heartRate: baselineMetrics.heartRate + Math.floor(Math.random() * 20),
+          sleepHours: Math.max(
+            baselineMetrics.sleepHours - Math.random() * 2,
+            0
+          ),
+          dailySteps: Math.max(
+            baselineMetrics.dailySteps - Math.floor(Math.random() * 2000),
+            0
+          ),
+          bloodSugar:
+            baselineMetrics.bloodSugar + Math.floor(Math.random() * 30),
+        },
+        potentialRisks: [
+          "Increased stress levels",
+          "Potential sleep deprivation",
+          "Reduced physical activity",
+        ],
+        healthImpacts: [
+          "Higher heart rate indicating increased stress",
+          "Reduced sleep may affect cognitive function",
+          "Decreased activity level may impact cardiovascular health",
+        ],
+        overallSummary:
+          "The scenario suggests potential negative impacts on your health metrics. Consider maintaining regular sleep patterns and physical activity levels.",
+        timestamp: new Date().toISOString(),
       };
-      
-      // Configure the generation parameters
-      const generationConfig = {
-        temperature: 0.15,
-        topP: 0.95,
-        maxOutputTokens: 8192,
-      };
-      
-      // Create a chat session and send the message
-      const chatSession = model.startChat({
-        generationConfig,
-        history: [],
-      });
-      
-      const result = await chatSession.sendMessage(JSON.stringify(inputData));
-      let responseText = result.response.text();
-      
-      // Clean up the response text (remove markdown code blocks if present)
-      responseText = responseText.replace(/```json|```/g, "").trim();
-      
-      // Parse the JSON response
-      const aiResponse = JSON.parse(responseText);
-      console.log("AI Response:", aiResponse);
-      
-      // Update the simulation results
-      setSimulationResults({
-        ...aiResponse,
-        timestamp: new Date().toISOString()
-      });
-      
-    } catch (error) {
-      console.error("Simulation error:", error);
+
+      setSimulationResults(mockResponse);
+    } catch (err) {
+      console.error("Simulation error:", err);
       setError("An error occurred during the simulation. Please try again.");
     } finally {
       setIsSimulating(false);
     }
   };
-  
-  // Reset the simulation
+
   const resetSimulation = () => {
     setSimulationResults(null);
-    setScenario('');
+    setScenario("");
     setError(null);
   };
-  
-  // Prepare data for the comparison chart
-  const prepareChartData = () => {
-    if (!simulationResults) return [];
-    
-    const metrics = [
-      { name: 'Heart Rate', baseline: baselineMetrics.heartRate, simulated: simulationResults.updatedMetrics.heartRate },
-      { name: 'Sleep Hours', baseline: baselineMetrics.sleepHours, simulated: simulationResults.updatedMetrics.sleepHours },
-      { name: 'Stress Level', baseline: baselineMetrics.stressLevel, simulated: simulationResults.updatedMetrics.stressLevel },
-      { name: 'Blood Sugar', baseline: baselineMetrics.bloodSugar, simulated: simulationResults.updatedMetrics.bloodSugar },
-      { name: 'Active Minutes', baseline: baselineMetrics.activeMinutes, simulated: simulationResults.updatedMetrics.activeMinutes },
-      { name: 'Health Score', baseline: baselineMetrics.healthScore, simulated: simulationResults.updatedMetrics.healthScore }
-    ];
-    
-    return metrics;
-  };
 
-  // Calculate changes for metrics
-  const getMetricChange = (baseline, simulated) => {
-    const change = simulated - baseline;
-    const isPositive = change >= 0;
-    return { 
-      value: Math.abs(change), 
-      isPositive, 
-      icon: isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />
-    };
-  };
-  
-  // Render loading state
   if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="p-6 mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500 mb-4" />
-              <h1 className="text-2xl font-bold text-indigo-800 mb-2">Loading Health Data</h1>
-              <p className="text-gray-600">Please wait while we retrieve your latest health metrics...</p>
-            </div>
-          </div>
-          
-          <div className="mt-8 space-y-4">
-            <Skeleton className="h-8 w-3/4 mx-auto rounded-md" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Skeleton className="h-24 rounded-md" />
-              <Skeleton className="h-24 rounded-md" />
-              <Skeleton className="h-24 rounded-md" />
-              <Skeleton className="h-24 rounded-md" />
-            </div>
-            <Skeleton className="h-10 w-40 mx-auto rounded-md mt-6" />
-          </div>
-        </Card>
-      </div>
-    );
+    return <LoadingState />;
   }
-  
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <Card className="p-6 mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
-        <h1 className="text-2xl font-bold text-center mb-2 text-indigo-800">AI Health Simulator</h1>
-        <p className="text-gray-600 text-center mb-6">
-          Enter a real-life scenario to see how your body might respond, powered by AI
-        </p>
-        
-        {error && (
-          <Alert variant="destructive" className="mb-6 border border-red-200 bg-red-50">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-700">{error}</AlertDescription>
-            </div>
-          </Alert>
-        )}
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Describe a scenario:</label>
-          <Textarea
-            placeholder="Example: I haven't slept for the past 30 hours, or I've been exercising intensely for 2 weeks"
-            value={scenario}
-            onChange={(e) => setScenario(e.target.value)}
-            className="w-full h-24 border-indigo-200 focus:border-indigo-400 focus:ring-indigo-400"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              <label className="block text-sm font-medium text-gray-700">Resting Heart Rate: <span className="font-semibold">{baselineMetrics.heartRate} BPM</span></label>
-            </div>
-            <Slider
-              value={[baselineMetrics.heartRate]}
-              min={40}
-              max={120}
-              step={1}
-              onValueChange={(val) => setBaselineMetrics({...baselineMetrics, heartRate: val[0]})}
-              className="my-2"
-            />
-            <p className="text-xs text-gray-500 mt-1">Normal range: 60-100 BPM</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Moon className="w-5 h-5 text-indigo-400" />
-              <label className="block text-sm font-medium text-gray-700">Sleep Hours: <span className="font-semibold">{baselineMetrics.sleepHours}</span></label>
-            </div>
-            <Slider
-              value={[baselineMetrics.sleepHours]}
-              min={0}
-              max={12}
-              step={0.5}
-              onValueChange={(val) => setBaselineMetrics({...baselineMetrics, sleepHours: val[0]})}
-              className="my-2"
-            />
-            <p className="text-xs text-gray-500 mt-1">Recommended: 7-9 hours</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-5 h-5 text-green-500" />
-              <label className="block text-sm font-medium text-gray-700">Daily Steps: <span className="font-semibold">{baselineMetrics.dailySteps.toLocaleString()}</span></label>
-            </div>
-            <Slider
-              value={[baselineMetrics.dailySteps]}
-              min={0}
-              max={20000}
-              step={500}
-              onValueChange={(val) => setBaselineMetrics({...baselineMetrics, dailySteps: val[0]})}
-              className="my-2"
-            />
-            <p className="text-xs text-gray-500 mt-1">Recommended: 8,000-10,000 steps</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Brain className="w-5 h-5 text-amber-500" />
-              <label className="block text-sm font-medium text-gray-700">Blood Sugar: <span className="font-semibold">{baselineMetrics.bloodSugar} mg/dL</span></label>
-            </div>
-            <Slider
-              value={[baselineMetrics.bloodSugar]}
-              min={70}
-              max={200}
-              step={1}
-              onValueChange={(val) => setBaselineMetrics({...baselineMetrics, bloodSugar: val[0]})}
-              className="my-2"
-            />
-            <p className="text-xs text-gray-500 mt-1">Normal fasting range: 70-100 mg/dL</p>
-          </div>
-        </div>
-        
-        <div className="flex justify-center">
-          <Button 
-            disabled={!scenario || isSimulating} 
-            onClick={runSimulation}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 px-6 py-2 rounded-full shadow-md transition-all duration-200 transform hover:scale-105"
-          >
-            {isSimulating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Consulting AI...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Run AI Simulation
-              </>
-            )}
-          </Button>
-        </div>
-      </Card>
-      
-      {simulationResults && (
-        <Card className="p-6 mb-8 border-0 shadow-lg bg-white overflow-hidden">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <BarChart className="w-5 h-5 text-indigo-600" />
-              AI Simulation Results
-            </h2>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={resetSimulation}
-              className="text-gray-600 hover:bg-gray-100"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" /> Reset
-            </Button>
-          </div>
-          
-          {/* Comparison Chart with enhanced styling */}
-          <div className="mb-8 bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <BarChart className="w-4 h-4 text-indigo-600" />
-              Health Metrics Comparison
-            </h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <RechartsBarChart
-                data={prepareChartData()}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                barCategoryGap="20%"
-                barGap={0}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fill: '#4b5563', fontSize: 12 }}
-                  tickLine={{ stroke: '#9ca3af' }}
-                  axisLine={{ stroke: '#9ca3af' }}
-                />
-                <YAxis 
-                  tick={{ fill: '#4b5563', fontSize: 12 }}
-                  tickLine={{ stroke: '#9ca3af' }}
-                  axisLine={{ stroke: '#9ca3af' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  wrapperStyle={{ paddingTop: 10 }}
-                  iconType="circle"
-                />
-                <Bar 
-                  dataKey="baseline" 
-                  name="Baseline" 
-                  fill="#60a5fa" 
-                  radius={[4, 4, 0, 0]}
-                >
-                  <LabelList dataKey="baseline" position="top" fill="#3b82f6" fontSize={12} />
-                </Bar>
-                <Bar 
-                  dataKey="simulated" 
-                  name="Simulated" 
-                  fill="#f87171" 
-                  radius={[4, 4, 0, 0]}
-                >
-                  <LabelList dataKey="simulated" position="top" fill="#ef4444" fontSize={12} />
-                </Bar>
-              </RechartsBarChart>
-            </ResponsiveContainer>
-          </div>
-          
-          {/* Metric Changes */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-            {prepareChartData().map((metric) => {
-              const change = getMetricChange(metric.baseline, metric.simulated);
-              return (
-                <div 
-                  key={metric.name} 
-                  className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col"
-                >
-                  <span className="text-sm text-gray-600 mb-1">{metric.name}</span>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-gray-800">{metric.simulated}</span>
-                    <div className={`flex items-center text-xs ${change.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {change.icon}
-                      <span className="ml-1">{change.value.toFixed(1)}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
-                Potential Risks
-              </h3>
-              {simulationResults.potentialRisks && simulationResults.potentialRisks.length > 0 ? (
-                <ul className="space-y-3">
-                  {simulationResults.potentialRisks.map((risk, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-amber-500 mr-2 mt-1">•</span>
-                      <span className="text-gray-700">{risk}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="flex items-center text-gray-600 bg-gray-100 p-3 rounded">
-                  <Info className="w-5 h-5 mr-2 text-blue-500" />
-                  No significant risks detected
-                </div>
-              )}
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-blue-500" />
-                Health Impacts
-              </h3>
-              {simulationResults.healthImpacts && simulationResults.healthImpacts.length > 0 ? (
-                <ul className="space-y-3">
-                  {simulationResults.healthImpacts.map((impact, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-blue-500 mr-2 mt-1">•</span>
-                      <span className="text-gray-700">{impact}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="flex items-center text-gray-600 bg-gray-100 p-3 rounded">
-                  <Info className="w-5 h-5 mr-2 text-blue-500" />
-                  No significant health impacts detected
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Explanations Section with improved styling */}
-          <div className="mt-6">
-            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-indigo-600" />
-              AI Analysis
-            </h3>
-            <Card className="p-5 bg-indigo-50 border border-indigo-100">
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {simulationResults.overallSummary || "No detailed explanation provided by the AI."}
+    <div className="max-w-5xl mx-auto px-6 py-8">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button
+          onClick={() => navigate("/dashboard")}
+          variant="ghost"
+          size="icon"
+          className="hover:bg-gray-100 rounded-full"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-900">Health Simulator</h1>
+      </div>
+
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <>
+          {/* Main Input Card */}
+          <Card className="p-8 mb-8 bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg rounded-xl">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+                AI Health Predictor
+              </h2>
+              <p className="text-gray-600 text-center mb-8">
+                Describe a scenario to see how it might affect your health
+                metrics
               </p>
-            </Card>
-          </div>
-          
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="flex items-center text-xs text-gray-500">
-              <Info className="w-4 h-4 mr-2 text-gray-400" />
-              <p>
-                Simulation generated at {new Date(simulationResults.timestamp).toLocaleString()}. 
-                This is an AI-powered simulation and should not be used for actual medical decisions.
-                Always consult with healthcare professionals for medical advice.
-              </p>
+
+              {error && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Textarea
+                placeholder="Example: I haven't slept for 24 hours and had 3 cups of coffee..."
+                value={scenario}
+                onChange={(e) => setScenario(e.target.value)}
+                className="min-h-[100px] mb-8 text-lg"
+              />
+
+              {/* Metric Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <MetricCard
+                  icon={Heart}
+                  title="Heart Rate"
+                  value={baselineMetrics.heartRate}
+                  unit="BPM"
+                  min={40}
+                  max={120}
+                  onChange={(val) =>
+                    setBaselineMetrics({ ...baselineMetrics, heartRate: val })
+                  }
+                  recommendation="Normal range: 60-100 BPM"
+                />
+                <MetricCard
+                  icon={Moon}
+                  title="Sleep Duration"
+                  value={baselineMetrics.sleepHours}
+                  unit="hours"
+                  min={0}
+                  max={12}
+                  onChange={(val) =>
+                    setBaselineMetrics({ ...baselineMetrics, sleepHours: val })
+                  }
+                  recommendation="Recommended: 7-9 hours"
+                />
+                <MetricCard
+                  icon={Activity}
+                  title="Daily Activity"
+                  value={baselineMetrics.dailySteps}
+                  unit="steps"
+                  min={0}
+                  max={20000}
+                  onChange={(val) =>
+                    setBaselineMetrics({ ...baselineMetrics, dailySteps: val })
+                  }
+                  recommendation="Target: 8,000-10,000 steps"
+                />
+                <MetricCard
+                  icon={DropletIcon}
+                  title="Blood Sugar"
+                  value={baselineMetrics.bloodSugar}
+                  unit="mg/dL"
+                  min={70}
+                  max={200}
+                  onChange={(val) =>
+                    setBaselineMetrics({ ...baselineMetrics, bloodSugar: val })
+                  }
+                  recommendation="Normal fasting: 70-100 mg/dL"
+                />
+              </div>
+
+              {/* Simulation Button */}
+              <div className="flex justify-center">
+                <Button
+                  disabled={!scenario || isSimulating}
+                  onClick={runSimulation}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {isSimulating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Running Simulation...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 mr-2" />
+                      Start Simulation
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          {/* Results Section */}
+          {simulationResults && (
+            <ResultsSection
+              results={simulationResults}
+              baselineMetrics={baselineMetrics}
+              onReset={resetSimulation}
+            />
+          )}
+        </>
       )}
     </div>
   );
